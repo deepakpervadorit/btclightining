@@ -1,0 +1,4 @@
+[03-Oct-2024 09:02:50 UTC] PHP Fatal error:  Uncaught Error: Class "Illuminate\Support\Facades\Route" not found in /home/cumboqbo/pay.cumbo.tech/routes/web.php:16
+Stack trace:
+#0 {main}
+  thrown in /home/cumboqbo/pay.cumbo.tech/routes/web.php on line 16

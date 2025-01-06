@@ -1,0 +1,4 @@
+[03-Oct-2024 21:32:44 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/cumboqbo/pay.cumbo.tech/config/database.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/cumboqbo/pay.cumbo.tech/config/database.php on line 18

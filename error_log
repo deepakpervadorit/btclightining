@@ -1,0 +1,13 @@
+[05-Oct-2024 11:38:29 UTC] PHP Fatal error:  Trait "Carbon\Carbon\Carbon" not found in /home/cumboqbo/pay.cumbo.tech/app/Http/Controllers/DashboardController.php on line 9
+[24-Oct-2024 09:13:14 UTC] Stripe Notice: Undefined property of Stripe\PaymentIntent instance: charges
+[25-Oct-2024 10:52:51 UTC] PHP Fatal error:  Cannot declare class App\Services\CheckbookService, because the name is already in use in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/CheckController.php on line 6
+[26-Oct-2024 10:53:00 UTC] API error: {"error":"Method not allowed"}
+
+[26-Oct-2024 10:53:34 UTC] API error: {"error":"Unauthorized"}
+
+[29-Oct-2024 08:20:26 UTC] PHP Fatal error:  Cannot use Square\Exceptions\ApiException as ApiException because the name is already in use in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/PaymentController.php on line 18
+[29-Oct-2024 08:20:27 UTC] PHP Fatal error:  Cannot use Square\Exceptions\ApiException as ApiException because the name is already in use in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/PaymentController.php on line 18
+[04-Dec-2024 12:14:59 UTC] PHP Fatal error:  Trait "App\Providers\Illuminate\Support\Facades\Blade" not found in /home/cumbotech123/pay.cumbo.tech/app/Providers/AppServiceProvider.php on line 7
+[04-Jan-2025 07:43:37 UTC] PHP Fatal error:  Cannot use try without catch or finally in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/LoginController.php on line 76
+[04-Jan-2025 10:00:31 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\LoginController, because the name is already in use in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/Admin/LoginController.php on line 12
+[06-Jan-2025 11:43:34 UTC] PHP Fatal error:  Cannot declare class App\Http\Controllers\DashboardController, because the name is already in use in /home/cumbotech123/pay.cumbo.tech/app/Http/Controllers/Merchant/DashboardController.php on line 9
