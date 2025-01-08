@@ -13,13 +13,13 @@ footer {
         <div class="container">
             <div class="row justify-content-center align-items-center">
                 <div class="col-xl-5 col-lg-6 col-md-8 col-sm-10">
-                    
+
                     @if(session('success'))
                         <div class="alert alert-success">
                             {{ session('success') }}
                         </div>
                     @endif
-                
+
                     @if($errors->any())
                         <div class="alert alert-danger">
                             @foreach ($errors->all() as $error)
@@ -39,10 +39,10 @@ footer {
                                     <li>Enter the amount you would like to load.</li>
                                 </ol>
                             </div>
-                    
+
                             <div class="alert alert-warning border-0 border-start border-5 border-warning rounded-0" role="alert">
                                 <h3 class="fs-6">Quick Payment Options</h3>
-                                <p> 
+                                <p>
                                     <img src="{{ asset('public/assets/img/apple-pay.svg') }}" height="35" class="me-1" alt="Apple Pay" />
                                     <img src="{{ asset('public/assets/img/cash-app.png') }}" height="40" class="me-1 py-2" alt="Cash App" />
                                     is supported through the Debit/Credit card option.
@@ -76,7 +76,7 @@ footer {
                             <input type="hidden" name="notificationUrl" value="{{ env('NOTIFICATION_URL') }}" />
                             <div class="mb-3">
                             <label for="payment-method" class="form-label">Amount:</label>
-                            <input class="form-control" type="number" name="amount" value="10.00" id="amountInput"/>
+                            <input class="form-control" type="text" name="amount" value="" id="amountInput"/>
                             </div>
                             <input type="hidden" id="vsecret-key" name="vsecret-key" value="{{ env('SECRET_KEY') }}">
                                 <button type="submit" id="visabtn" class="btn btn-primary">Submit</button>
@@ -103,12 +103,14 @@ footer {
                             <input type="hidden" name="paymentBrand" value="{{ env('PAYMENT_BRAND') }}" />
                             <div class="mb-3">
                             <label for="payment-method" class="form-label">Amount:</label>
-                            <input class="form-control" type="number" name="amount" value="10.00" id="amountInput"/>
+                            <input class="form-control" type="text" name="amount" value="" id="amountInput"/>
                             </div>
                             <input type="hidden" id="msecret-key" name="msecret-key" value="{{ env('SECRET_KEY') }}">
                             <button type="submit" id="mastercardbtn" class="btn btn-primary">Submit</button>
 
                         </form>
+                        <div id="loading-indicator" style="display: none;">Loading...</div>
+                        <img id="payment-qr" alt="Payment QR Code" style="display: none;" />
                         </div>
                     </div>
                 </div>
@@ -139,7 +141,7 @@ document.getElementById('amountInput').addEventListener('input', function() {
     if (value && !isNaN(value)) {
         // Parse and reformat to 2 decimal places
         this.value = parseFloat(value).toFixed(2);
-        
+
         // Set the value using jQuery
         $('#amountInput').val(this.value);
 
@@ -176,18 +178,11 @@ document.getElementById('amountInput').addEventListener('input', function() {
 }
 </script>
 <script>
-    // Toggle form visibility based on payment method selection
-    document.getElementById('payment-method').addEventListener('change', function () {
+    $("#visa-form").on("submit", function (e) {
+        e.preventDefault();
+        var paymentMethodSelect = $('payment-method').val();
         const visaForm = document.getElementById('visa-form');
         const mastercardForm = document.getElementById('mastercard-form');
-        
-        
-                // Update the checksum field in the Visa form
-                
-        // Show the selected form
-        if (this.value === 'visa') {
-            console.log('visa');
-        visaForm.style.display = 'block';
         const visaAmount = visaForm.querySelector('input[name="amount"]').value;
         const merchantTransactionId = visaForm.querySelector('input[name="merchantTransactionId"]').value;
         const secretKey = visaForm.querySelector('input[name="vsecret-key"]').value;
@@ -221,9 +216,8 @@ document.getElementById('amountInput').addEventListener('input', function() {
                 success: function (response) {
                     console.log(response.message); // Success message
                     var SPEED_SECRET_KEY = "{{ env('SPEED_SECRET_KEY') }}";
-                    var amount = $("#amount").val();
                     var encodedKey = btoa(SPEED_SECRET_KEY);
-                    
+
                     var settings = {
                         "url": "https://api.tryspeed.com/payments",
                         "method": "POST",
@@ -234,21 +228,46 @@ document.getElementById('amountInput').addEventListener('input', function() {
                         },
                         "data": JSON.stringify({
                             "currency": "USD",
-                            "amount": amount,
+                            "amount": famount,
                             "success_message":"Your payment request has been completed",
                             "payment_methods":["lightning"]
                         }),
                     };
-        
+
                     $.ajax(settings).done(function(response) {
-                        console.log(response);
-                        var checkoutUrl = response.url;
-        
-                        if (checkoutUrl) {
-                            window.location.href = checkoutUrl;
-                        } else {
-                            console.error("URL not found in the response.");
-                        }
+
+                        var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
+                        console.log(checkoutUrl);
+
+
+                        $.ajax({
+                            url: '/generate-invoice-qr',
+                            method: 'POST',
+                            data: {
+                                payment_request: checkoutUrl
+                            },
+                            beforeSend: function() {
+                                // Show the loading indicator
+                                $('#loading-indicator').css('display', 'block');
+                            },
+                            success: function(qrCodeUrl) {
+                                console.log("Received response:", qrCodeUrl); // Debug the raw response
+
+                                // Ensure it's a string before calling `replace`
+                                if (typeof qrCodeUrl === "string") {
+                                    qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
+                                    var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
+                                    $('#loading-indicator').css('display', 'none');
+                                    $('#payment-qr').css('display', 'block');
+                                    $('#payment-qr').attr('src', svgDataUrl);
+                                } else {
+                                    console.error("Invalid response type. Expected a string.");
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error("QR generation failed: " + error);
+                            }
+                        });
                     }).fail(function(xhr, status, error) {
                         console.error("Request failed with status: " + status + ", error: " + error);
                         console.error("Response: " + xhr.responseText);
@@ -258,6 +277,21 @@ document.getElementById('amountInput').addEventListener('input', function() {
                     console.log('An error occurred: ' + xhr.responseJSON.message);
                 }
         });
+    });
+     // Prevent default button behavior
+    // Toggle form visibility based on payment method selection
+    document.getElementById('payment-method').addEventListener('change', function () {
+        const visaForm = document.getElementById('visa-form');
+        const mastercardForm = document.getElementById('mastercard-form');
+
+
+                // Update the checksum field in the Visa form
+
+        // Show the selected form
+        if (this.value === 'visa') {
+            console.log('visa');
+        visaForm.style.display = 'block';
+
         } else if (this.value === 'mastercard') {
         console.log('mc');
         mastercardForm.style.display = 'block';
@@ -295,7 +329,7 @@ document.getElementById('amountInput').addEventListener('input', function() {
 <script>
 $(document).ready(function () {
     $("#submit-button").on("click", function (e) {
-        
+
         const Gateway = document.getElementById('method_code');
         const selectedGateway = Gateway.options[Gateway.selectedIndex].text;
         const subGateway = document.getElementById('sub-gateway-select');
@@ -304,7 +338,7 @@ $(document).ready(function () {
             if(subselectedGateway === "Visa")
             {
                 e.preventDefault(); // Prevent default button behavior
-        
+
                 // Serialize form data
                 var formData = {
                     user_id: $("#visa-form input[name='user_id']").val(),
@@ -322,7 +356,7 @@ $(document).ready(function () {
             else if(subselectedGateway === "MasterCard")
             {
                 e.preventDefault(); // Prevent default button behavior
-        
+
                 // Serialize form data
                 var formData = {
                     user_id: $("#visa-form input[name='user_id']").val(),
@@ -357,11 +391,11 @@ $(document).ready(function () {
 
         console.log('formData',formData);
 
-        
-        
+
+
             if (subselectedGateway === 'Visa') {
         const mainForm = document.getElementById('form');
-        
+
         disableForm("main-form");
         // Submit Visa form
         document.getElementById('visa-form').submit();
@@ -381,7 +415,7 @@ $(document).ready(function () {
         //             data: formData,
         //             success: function (response) {
         //                 console.log("Response:", response);
-        
+
         //                 // Redirect after successful response
         //                 // If the server provides a redirect URL, use it
         //                 var redirectUrl = "https://sandbox.fortunefinex.com/transaction/Checkout";
@@ -397,7 +431,7 @@ $(document).ready(function () {
                     else if(selectedGateway === 'Paypal'){
                         console.log('the selected gateway is Paypal');
                         document.getElementById('main-form').submit();
-                        
+
 
                     }
     });
@@ -419,7 +453,7 @@ $(document).ready(function () {
                 var sym = $(this).find('option:selected').data('sym')
                 var code = $(this).find('option:selected').data('code')
                 var rate = $(this).find('option:selected').data('rate')
-                
+
                 $('.curr_code').text(code)
                 $('.sym').text(sym)
                 $('input[name=currency]').val(code)
@@ -441,7 +475,7 @@ $(document).ready(function () {
                     //         Visa
                     //     </option>
                     //     <option data-max="20000" data-min="500" data-fixcharge="10" data-percent="2.0" data-rate="1.0" value="998">
-                    //     MasterCard    
+                    //     MasterCard
                     //     </option>
                     // `;
                     $('.gateway').append(html)
@@ -456,7 +490,7 @@ $(document).ready(function () {
             })
 
             $('.gateway').on('change', function() {
-                
+
                 if ($('.gateway option:selected').val() == '') {
                     $('.amount').attr('disabled', true)
                     $('.charge').text('0.00')
@@ -464,7 +498,7 @@ $(document).ready(function () {
                     $('.limit').text('limit : 0.00 USD')
                     return false
                 }
-        
+
                 $('.amount').removeAttr('disabled')
                 var amount = $('.amount').val() ? parseFloat($('.amount').val()) : 0;
                 var code = $(wallet).find('option:selected').data('code')
@@ -481,7 +515,7 @@ $(document).ready(function () {
                 var fixed = parseFloat($('.gateway option:selected').data('fixcharge'))
                 var pCharge = parseFloat($('.gateway option:selected').data('percent'))
                 var percent = (amount * parseFloat($('.gateway option:selected').data('percent'))) / 100
-             
+
                 var totalCharge = fixed + percent
                 var totalAmount = amount + totalCharge
                 var precesion = 0;
@@ -491,7 +525,7 @@ $(document).ready(function () {
                 } else {
                     precesion = 8;
                 }
-                
+
                 $('.charge').text(totalCharge.toFixed(precesion))
                 $('.payable').text(totalAmount.toFixed(precesion))
                 $('.limit').text('limit : ' + min.toFixed(precesion) + ' ~ ' + max.toFixed(precesion) + ' ' + code)
@@ -529,7 +563,7 @@ $(document).ready(function () {
                     $('.payable').text('0.00')
 
                 }
-                
+
                 const amountField = $('.payable').text();
                 const subGateway = document.getElementById('sub-gateway-select');
                 const subselectedGateway = subGateway.options[subGateway.selectedIndex].text;
@@ -555,15 +589,15 @@ $(document).ready(function () {
                 } else {
                     famount = '0.00'; // In case of invalid input, set to 0.00
                 }
-                
+
                 // Update the amount field in the Visa form
                 amountInputInVisaForm.value = famount;
                 // Get the merchantTransactionId value already set by the server
                 const merchantTransactionId = merchantTransactionIdInputInVisaForm.value;
-        
+
                 // Prepare the checksum string dynamically
                 const checksumString = `${document.querySelector('input[name="memberId"]').value}|${document.querySelector('input[name="totype"]').value}|${famount}|${merchantTransactionId}|${document.querySelector('input[name="merchantRedirectUrl"]').value}|${secretKey}`;
-        
+
                 // Update the checksum field in the Visa form
                 checksumInputInVisaForm.value = md5(checksumString);
                 console.log(md5(checksumString));
@@ -579,7 +613,7 @@ $(document).ready(function () {
             })
 
         })(jQuery);
-        
+
         document.getElementById('gateway-select').addEventListener('change', function () {
     const selectedGateway = this.options[this.selectedIndex].text;
     const subGateway = document.getElementById('fortunefinix_gateway');
@@ -612,7 +646,7 @@ $(document).ready(function () {
 //         const Gateway = document.getElementById('fortunefinix_gateway');
 //         const selectedGateway = Gateway.options[Gateway.selectedIndex].text;
 //         console.log("selectedGateway",selectedGateway)
-        
+
 
 //         let hiddenInput;
 //             if (selectedGateway === 'Visa') {
@@ -621,7 +655,7 @@ $(document).ready(function () {
 //             if (selectedGateway === 'MasterCard') {
 //             hiddenInput = document.getElementsByClassName("amount")[0];
 //             }
-            
+
 //             console.log("selectedGateway",selectedGateway)
 
 //             console.log('onchange triggered, value:', this.value);
@@ -663,7 +697,7 @@ function disableForm(formId) {
           const amountValue = parseFloat(input.value).toFixed(2);
           let baseAmount = {!! json_encode($amount ?? '') !!};
           console.log('Base Amount:', baseAmount);
-          
+
 
       // Find the 'visaamount' input and set its value
       const visaAmountInput = document.querySelector(".MasterAmount");
@@ -676,7 +710,7 @@ function disableForm(formId) {
           console.log('no fortunefinix gatways selected');
       }
     }
-    
+
     function md5(string) {
     return CryptoJS.MD5(string).toString(CryptoJS.enc.Hex);
 }

@@ -16,6 +16,7 @@ use Square\SquareClient;
 use Square\Models\CreatePaymentLinkRequest;
 use Square\Exceptions\ApiException;
 use App\Services\CheckbookService;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class PaymentController extends Controller
@@ -31,12 +32,24 @@ class PaymentController extends Controller
         $deposits = DB::table('deposits')->get();
         return view('admin.payments', compact('deposits'));
     }
-    
+
     public function showForm()
     {
         $games = DB::table('games')->get();
             $userId = session('staff_id');
         return view('deposit',compact('games','userId'));
+    }
+
+    public function generateInvoiceQr(Request $request)
+    {
+        // Assuming you have the Lightning payment request in the response from the external API
+        $paymentRequest = $request->input('payment_request'); // This would be passed from your front-end via AJAX or from the API
+
+        // Generate the QR Code for the Lightning payment request
+        $qrCode = QrCode::size(300)->generate($paymentRequest); // You can adjust the size as needed
+
+        // Return the QR code as a response, or save it as an image
+        return $qrCode;
     }
     public function withdrawalForm()
     {
@@ -47,7 +60,7 @@ class PaymentController extends Controller
 
     public function depositLink(Request $request)
     {
-        
+
         // echo "<pre>";
         // print_r($request->toArray());
         // exit;
@@ -73,7 +86,7 @@ class PaymentController extends Controller
     }
     public function withdrawalLink(Request $request)
     {
-        
+
         // echo "<pre>";
         // print_r($request->toArray());
         // exit;
@@ -133,21 +146,21 @@ class PaymentController extends Controller
         Session::put('amount', $amount);
         Session::put('username', $request->input('username'));
         Session::put('server', $request->input('server'));
-        
+
         $stripeSecretKey = env('STRIPE_SECRET');
         \Stripe\Stripe::setApiKey($stripeSecretKey);
 
         // Retrieve the payment intent details
         $session = \Stripe\Checkout\Session::retrieve($sessionId);
-           
+
         return response()->json($session);
         // Get the payment intent
         $paymentIntentId = $session->payment_intent;
         $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntentId);
-        
+
         // Check if the card is debit or credit
         $cardDetails = $paymentIntent->charges->data[0]->payment_method_details->card;
-        $fundingType = $cardDetails->funding; 
+        $fundingType = $cardDetails->funding;
 
 
             // Return the Checkout session URL to the client
@@ -192,7 +205,7 @@ class PaymentController extends Controller
     // Logic for successful deposit (e.g., notify the user, update records)
     return view('thank-you')->with('message', 'Your deposit was processed successfully. Thank you for your payment!');
 }
-public function depositStripeCancel()   
+public function depositStripeCancel()
     {
         // Logic for cancelled deposit
         return view('deposit'); // You can create a cancel.blade.php view to inform the user
@@ -249,7 +262,7 @@ public function squareProcessDeposit(Request $request, $id)
                         'status' => 'Paid' ]);
                     // Update the deposit status in the database
                     return response()->json(['success' => 'Payment Completed','status' => $paymentData['payment']['status']], 500);
-                   
+
                 } else {
                     return response()->json(['error' => 'Payment not completed', 'status' => $paymentData['payment']['status']], 500);
                 }
@@ -274,7 +287,7 @@ public function makePayment(Request $request)
     $username = $request->input('username');
     $name = $request->input('name');
    $email = $recipientEmail;
-$address = $request->input('line_1'); 
+$address = $request->input('line_1');
     // Check for deposit type and handle accordingly
     if ($request->input('deposit_type') == 'mail_deposit') {
         //  $account = '13287e3a58e34ea9bd75717d20ac237a'; // Wallet Address Hardcoded for now (sandbox)
@@ -340,7 +353,7 @@ $address = $request->input('line_1');
         $cvv = $vcc['cvv'] ?? null;
         $expirationDate = $vcc['expiration_date'] ?? null;
     }
-    
+
 if(!isset($useraccount)){
     // Insert user's payment account into the database
    $useraccount =  DB::table('user_account')->insert([
@@ -358,7 +371,7 @@ if(!isset($useraccount)){
         'cvv' => $cvv ?? NULL, // Store CVV if available
         'expiration_date' => $expirationDate ?? NULL, // Store expiration date if available
         'created_at' => now(),
-    ]); 
+    ]);
 }
     if($useraccount == ''){
         $useraccount = DB::table('useraccount')->where('user_id',$staffId)->orderBy('created_at', 'id')->first();
@@ -489,7 +502,7 @@ private function generateUniqueUserId($name)
     {
     // Generate a 3-digit random number
     $randomNumbers = rand(100, 999);
-    
+
     // Concatenate the name with the random number
     $userId = $name . $randomNumbers;
     return $userId;

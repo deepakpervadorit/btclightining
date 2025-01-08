@@ -98,7 +98,7 @@ Route::get('/unauthorized', function () {
 
 // Permissions CRUD
 Route::resource('permissions', PermissionsController::class);
-
+Route::post('/generate-invoice-qr', [PaymentController::class, 'generateInvoiceQr']);
 // Route::get('/deposit/form', [PaymentController::class, 'showForm'])->name('show.deposit.form');
 // Route::get('/payments', [PaymentController::class, 'payments'])->name('show.payments');
 // Route::post('/webhook', 'PaymentController@handleWebhook')->name('webhook');
