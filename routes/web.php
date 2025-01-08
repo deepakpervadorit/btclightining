@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Merchant\DashboardController as MerchantDashboardController;
+use App\Http\Controllers\Merchant\UserController as MerchantUserController;
 use App\Http\Controllers\DepositController;
 use App\Http\Controllers\WithdrawalController;
 use App\Http\Controllers\StaffController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotifyPaymentController;
 use App\Http\Controllers\thankyouController;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 
 /*
@@ -110,12 +112,14 @@ Route::post('/thankyou', [thankyouController::class, 'thankyou'])
 Route::post('/payout-notify-payment', [NotifyPaymentController::class, 'PayoutNotify'])->name('notify.payout');
 
 // Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
-Route::get('/register', [LoginController::class, 'showRegisterForm'])
+Route::get('/{merchantid}/register', [LoginController::class, 'showRegisterForm'])
         ->name('show.Register.form');
-Route::post('/register', [LoginController::class, 'register'])
-        ->name('register');
-        
+Route::post('/merchant/register', [LoginController::class, 'register'])
+        ->name('merchant.register');
+
 Auth::routes();
+
+
 Route::middleware('guest')->group(function () {
     Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('/login', [AdminLoginController::class, 'showAdminLoginForm'])->name('login');
@@ -132,23 +136,32 @@ Route::name('admin.')->prefix('admin')->group(function () {
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['staffAuth'])->group(function () {
+
+    //Merchant Routes
+    Route::name('merchant.')->prefix('merchant')->group(function () {
+        Route::get('/user', [MerchantUserController::class, 'index'])->name('users.index');
+        Route::get('/user/edit', [MerchantUserController::class, 'index'])->name('user.edit');
+    });
+
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard')
         ->middleware('permission:Dashboard');
     Route::get('/merchant/dashboard', [MerchantDashboardController::class, 'index'])
-        ->name('dashboard')
+        ->name('merchant.dashboard')
         ->middleware('permission:Dashboard');
+
     // Deposit
     Route::get('/deposit', [DepositController::class, 'index'])
         ->name('deposit')
-        ->middleware('permission:Deposit'); 
+        ->middleware('permission:Deposit');
     Route::delete('/deposits/{id}', [DepositController::class, 'destroy'])
         ->name('deposits.destroy')
         ->middleware('permission:Deposit');
         Route::post('/store', [DepositController::class, 'storeDepositAmount'])->name('deposit.store.amount');
-        
-    
+
+
     // Withdrawal
     Route::get('/withdrawal', [WithdrawalController::class, 'index'])
         ->name('withdrawal')
@@ -208,7 +221,7 @@ Route::middleware(['staffAuth'])->group(function () {
         ->name('admin.checkbook.keys.update')
         ->middleware('permission:Checkbook Settings');
 
-    
+
 
     // Roles CRUD
     Route::resource('roles', RolesController::class)->middleware('permission:Roles and Permissions');
@@ -216,7 +229,7 @@ Route::middleware(['staffAuth'])->group(function () {
 
         Route::post('/send-check', [CheckController::class, 'sendCheck'])->name('check.send')->middleware('permission:Roles and Permissions');
         Route::get('/send-check', [CheckController::class, 'showForm'])->name('check.form')->middleware('roles:Roles and Permissions');
-        
+
 
 
     });

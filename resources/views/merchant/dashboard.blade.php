@@ -41,8 +41,8 @@
         <div class="card">
            <div class="card-body">
                 <h5 class="card-title">User Registeration Link</h5>
-                <input class="form-control" type="text" value="https://pay.cumbo.tech/{{session('staff_name')}}/register" id="depositLink" readonly>
-                <a class="btn btn-primary mt-2" href="{{ route('show.deposit.form') }}">Deposit</a>
+                <input class="form-control" type="text" value="{{env('APP_URL')}}/{{session('staff_id')}}/register" id="depositLink" readonly>
+                <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('depositLink')">Copy</a>
            </div>
         </div>
     </div>

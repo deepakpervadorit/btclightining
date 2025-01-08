@@ -1,3 +1,6 @@
+@php
+    use Illuminate\Support\Facades\Route;
+@endphp
 <!doctype html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
@@ -59,7 +62,7 @@
                             @endif
                              @if (Route::has('register'))
                                 <a class="btn btn-outline-warning btn-sm ms-2" href="{{ route('register') }}">{{ __('Register') }}</a>
-                            @endif 
+                            @endif
                         @endguest
                     </div>
                 </div>

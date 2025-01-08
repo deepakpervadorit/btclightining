@@ -67,9 +67,21 @@ public function index()
     //     $startDate = $weekEnd->addDay();
     // }
     $userId = session('staff_id');
+    $roleId = DB::table('staff')
+    ->where('id', $userId)
+    ->value('role_id');
+    
+    $roleName = DB::table('roles')
+        ->where('id', $roleId)
+        ->value('name');
+        
+    $permissions = DB::table('permissions')
+    ->join('permission_role', 'permissions.id', '=', 'permission_role.permission_id')
+    ->where('permission_role.role_id', $roleId)
+    ->pluck('permissions.name');
     // Now both $depositData and $withdrawData hold totals for each week
     // Return the view with all the data
-    return view('merchant.dashboard', compact('userId'));
+    return view('merchant.dashboard', compact('userId','permissions','roleName'));
   }
 
 

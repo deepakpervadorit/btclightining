@@ -41,7 +41,7 @@ button.btn.btn-white {
         </ul>
     </div>
 @endif
-    
+
     <div class="w-50 px-4 pt-4 rounded" style="background: rgb(28 33 94 / 75%);
 border-radius: 16px;
 box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -54,17 +54,17 @@ padding: 35px 75px !important;">
 <h2 class="text-center text-white" >C U M B O P A Y</h2>
         </a>
     </div>
-                    <form method="POST" action="{{ route('register') }}">
+                    <form method="POST" action="{{ route('merchant.register') }}">
                         @csrf
 
                         <div class="row mb-3">
                             <label for="name" class="col-form-label ">{{ __('User Name') }}</label>
 
-<input id="name" 
-       type="text" 
-       class="form-control" 
-       name="name" 
-       required 
+<input id="name"
+       type="text"
+       class="form-control"
+       name="name"
+       required
        pattern="^[A-Za-z0-9]*$">
 
                                 @error('name')
@@ -77,6 +77,7 @@ padding: 35px 75px !important;">
                         <div class="row mb-3">
                             <label for="email" class="col-form-label ">{{ __('Email Address') }}</label>
 
+                            <input type="text"  name="merchantid" value="{{$merchantId}}" hidden>
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
 
                                 @error('email')

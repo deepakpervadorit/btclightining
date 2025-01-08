@@ -59,14 +59,7 @@
     </div>
 </div>
 @if($userId != '3')
-@php
-$deposit = DB::table('deposit_transactions')->where('user_id',$userId)->sum('amount');
-$withdrawal = DB::table('withdrawals')->where('userid',$userId)->sum('amount');
-$depositCount = DB::table('deposit_transactions')->where('user_id',$userId)->count();
-$withdrawalCount = DB::table('withdrawals')->where('userid',$userId)->count();
-$transactions = $depositCount + $withdrawalCount;
-$moneyout = DB::table('withdrawals')->where('userid',$userId)->where('status','Paid')->sum('amount');
-@endphp
+
 <div class="col-12">
 <div class="row py-4">
 
@@ -82,7 +75,7 @@ $moneyout = DB::table('withdrawals')->where('userid',$userId)->where('status','P
                     </div>
                 </div>
                 <!-- dashboard-w1 end -->
- 
+
                 <div class="col-xxl-3 col-sm-6">
                     <div class="widget-two style--two box--shadow2 b-radius--5 bg--1">
                         <div class="widget-two__icon b-radius--5 bg--primary">
@@ -114,7 +107,7 @@ $moneyout = DB::table('withdrawals')->where('userid',$userId)->where('status','P
                         <div class="widget-two__icon b-radius--5 bg--primary">
                             <i class="las la-money-bill-wave-alt"></i>
                         </div>
-                        <div class="widget-two__content"> 
+                        <div class="widget-two__content">
                             <h3 class="text-white">${{$moneyout}}</h3>
                             <p class="text-white">Total Money Out</p>
                         </div>

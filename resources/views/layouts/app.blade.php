@@ -9,9 +9,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-    
-    
-    
+
+
+
     /* Header Container */
 .header {
     display: flex;
@@ -71,9 +71,9 @@
 }
 
 
-    
-    
-    
+
+
+
    /* General Body and Layout */
 body {
     height: 100vh;
@@ -181,16 +181,16 @@ a.navbar-brand.text-white.mb-4 {
  </style>
 </head>
 <body>
-    
-    
- 
-    
-    
-    
+
+
+
+
+
+
     <!-- Sidebar -->
     <div id="sidebar" class="sidebar d-flex flex-column p-3">
         <a class="navbar-brand text-white mb-4" href="#">Cumbo.Tech</a>
-        
+
         <ul class="navbar-nav">
             <li class="nav-item">
                 <a class="nav-link active" href="{{ route('dashboard') }}">
@@ -224,36 +224,46 @@ a.navbar-brand.text-white.mb-4 {
                 <li class="nav-item"><a class="nav-link" href="{{ route('roles.index') }}">
                     <i class="fas fa-user-shield"></i> <span>Roles and Permission</span></a></li>
             @endif
+            @if ($permissions->contains('Users'))
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-users"></i><span> Users
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    @if($staffId == '3')
-                        <li><a class="dropdown-item" href="{{ route('user.index') }}">Users</a></li>
-                        <li><a class="dropdown-item" href="{{ route('user.checkbookusers') }}">Checkbook Users</a></li>
+                    @if($roleName == "Merchant")
+                    <li><a class="dropdown-item" href="{{ route('merchant.users.index') }}">Users</a></li>
                     @else
-                        <li><a class="dropdown-item" href="{{ route('user.virtualcard') }}">Virtual Card</a></li>
-                        <li><a class="dropdown-item" href="{{ route('user.checkbook_usersbyid') }}">Checkbook Account</a></li>
+                        @if($staffId == '3')
+                            <li><a class="dropdown-item" href="{{ route('user.index') }}">Users</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.checkbookusers') }}">Checkbook Users</a></li>
+                        @else
+                            <li><a class="dropdown-item" href="{{ route('user.virtualcard') }}">Virtual Card</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.checkbook_usersbyid') }}">Checkbook Account</a></li>
+                        @endif
                     @endif
                 </ul>
             </li>
+            @endif
             @if($staffId == '3')
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fas fa-users"></i><span> Merchants
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    
+
                         <li><a class="dropdown-item" href="{{ route('admin.merchant.list') }}">Merchants List</a></li>
-                    
+
                 </ul>
             </li>
             @endif
         </ul>
         <div class="mt-auto">
             <span class="nav-item">
+                @if($roleName == "Merchant")
+                <a href="{{ route('logout') }}" class="nav-link" ><i class="fas fa-sign-out"></i><span>Logout</span></a>
+                @else
                 <a href="{{ route('admin.logout') }}" class="nav-link" ><i class="fas fa-sign-out"></i><span>Logout</span></a>
+                @endif
             </span>
         </div>
     </div>
@@ -275,13 +285,17 @@ a.navbar-brand.text-white.mb-4 {
         <!-- Profile Name with Dropdown Icon -->
         <div id="profileDropdownBtn" class="d-flex align-items-center" style="cursor: pointer;">
             <img src="https://via.placeholder.com/40" alt="Profile" />
-            <span class="ms-2">John Doe</span>
+            <span class="ms-2">{{$roleName}}</span>
             <i class="fas fa-chevron-down ms-2"></i> <!-- Dropdown Icon -->
         </div>
         <!-- Dropdown Menu -->
         <ul class="profile-dropdown-menu list-unstyled shadow-sm bg-white rounded">
             <li><a href="#" class="dropdown-item">View Profile</a></li>
+            @if($roleName == "Merchant")
+            <li><a href="{{ route('logout') }}" class="dropdown-item">Logout</a></li>
+            @else
             <li><a href="{{ route('admin.logout') }}" class="dropdown-item">Logout</a></li>
+            @endif
         </ul>
     </div>
 </div>

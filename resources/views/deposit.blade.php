@@ -220,6 +220,39 @@ document.getElementById('amountInput').addEventListener('input', function() {
                 },
                 success: function (response) {
                     console.log(response.message); // Success message
+                    var SPEED_SECRET_KEY = "{{ env('SPEED_SECRET_KEY') }}";
+                    var amount = $("#amount").val();
+                    var encodedKey = btoa(SPEED_SECRET_KEY);
+                    
+                    var settings = {
+                        "url": "https://api.tryspeed.com/payments",
+                        "method": "POST",
+                        "timeout": 0,
+                        "headers": {
+                            "Content-Type": "application/json",
+                            "Authorization": "Basic " + encodedKey
+                        },
+                        "data": JSON.stringify({
+                            "currency": "USD",
+                            "amount": amount,
+                            "success_message":"Your payment request has been completed",
+                            "payment_methods":["lightning"]
+                        }),
+                    };
+        
+                    $.ajax(settings).done(function(response) {
+                        console.log(response);
+                        var checkoutUrl = response.url;
+        
+                        if (checkoutUrl) {
+                            window.location.href = checkoutUrl;
+                        } else {
+                            console.error("URL not found in the response.");
+                        }
+                    }).fail(function(xhr, status, error) {
+                        console.error("Request failed with status: " + status + ", error: " + error);
+                        console.error("Response: " + xhr.responseText);
+                    });
                 },
                 error: function (xhr) {
                     console.log('An error occurred: ' + xhr.responseJSON.message);

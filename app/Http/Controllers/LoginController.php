@@ -81,9 +81,9 @@ public function login(Request $request)
         ->first();
 
     // Attempt to find the user in the users table
-    // $user = DB::table('users')
-    //     ->where('email', $credentials['email'])
-    //     ->first();
+    $user = DB::table('users')
+        ->where('email', $credentials['email'])
+        ->first();
         
         $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
         ->first();
@@ -105,27 +105,27 @@ public function login(Request $request)
     }
 
     // Determine if the credentials are valid for users
-    // if ($user && Hash::check($credentials['password'], $user->password)) {
-    //     if($user->verify == '1'){
-    //     Session::put('staff_id', $user->id);
-    //     Session::put('staff_name', $user->name);
-    //     Session::put('staff_email', $user->email);
-    //     Session::put('staff_role', 'user'); // Add a role indicator
-    //     $request->session()->regenerate();
+    if ($user && Hash::check($credentials['password'], $user->password)) {
+        if($user->verify == '1'){
+        Session::put('staff_id', $user->id);
+        Session::put('staff_name', $user->name);
+        Session::put('staff_email', $user->email);
+        Session::put('staff_role', 'user'); // Add a role indicator
+        $request->session()->regenerate();
         
-    //     DB::table('role_staff')->insert([
-    //         'staff_id' => $user->id,
-    //         'role_id' => '5',
-    //         'created_at' => now(),
-    //         'updated_at' => now(),
-    //     ]);
-    //     return redirect()->intended('/dashboard')->with('success', 'Logged in successfully as user.');
-    //     } else {
-    //         return  back()->withErrors([
-    //     'email' => 'Your account is On pending for verification.',
-    // ])->withInput();
-    //     }
-    // }
+        DB::table('role_staff')->insert([
+            'staff_id' => $user->id,
+            'role_id' => '5',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        return redirect()->intended('/dashboard')->with('success', 'Logged in successfully as user.');
+        } else {
+            return  back()->withErrors([
+        'email' => 'Your account is On pending for verification.',
+    ])->withInput();
+        }
+    }
 
     // If login fails, redirect back with an error message
     return back()->withErrors([
