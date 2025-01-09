@@ -56,10 +56,16 @@ footer {
                             <label for="payment-method" class="form-label">Select Payment Method:</label>
                             <select id="payment-method" class="form-select">
                                 <option value="">Choose...</option>
+                                <option value="tryspeed">Try Speed</option>
                                 <option value="visa">Visa</option>
                                 <option value="mastercard">Mastercard</option>
                             </select>
                         </div>
+                        <div class="mb-3" id="tryspeedamount" style="display:none;">
+                            <label for="payment-method" class="form-label">Amount:</label>
+                            <input class="form-control" type="text" value="" id="tryspeedamountInput"/>
+                            </div>
+                        <a href="javascript:void(0);" id="tryspeedbtn" class="btn btn-primary" style="display:none;">Create Invoice</a>
                         <form id="visa-form" class="hidden" method="POST" action="https://sandbox.fortunefinex.com/transaction/Checkout" style="display:none">
                             @php
                                 $merchantTransactionId = bin2hex(random_bytes(6));
@@ -215,77 +221,114 @@ document.getElementById('amountInput').addEventListener('input', function() {
                 },
                 success: function (response) {
                     console.log(response.message); // Success message
-                    var SPEED_SECRET_KEY = "{{ env('SPEED_SECRET_KEY') }}";
-                    var encodedKey = btoa(SPEED_SECRET_KEY);
 
-                    var settings = {
-                        "url": "https://api.tryspeed.com/payments",
-                        "method": "POST",
-                        "timeout": 0,
-                        "headers": {
-                            "Content-Type": "application/json",
-                            "Authorization": "Basic " + encodedKey
-                        },
-                        "data": JSON.stringify({
-                            "currency": "USD",
-                            "amount": famount,
-                            "success_message":"Your payment request has been completed",
-                            "payment_methods":["lightning"]
-                        }),
-                    };
-
-                    $.ajax(settings).done(function(response) {
-
-                        var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
-                        console.log(checkoutUrl);
-
-
-                        $.ajax({
-                            url: '/generate-invoice-qr',
-                            method: 'POST',
-                            data: {
-                                payment_request: checkoutUrl
-                            },
-                            beforeSend: function() {
-                                // Show the loading indicator
-                                $('#loading-indicator').css('display', 'block');
-                            },
-                            success: function(qrCodeUrl) {
-                                console.log("Received response:", qrCodeUrl); // Debug the raw response
-
-                                // Ensure it's a string before calling `replace`
-                                if (typeof qrCodeUrl === "string") {
-                                    qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
-                                    var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
-                                    $('#loading-indicator').css('display', 'none');
-                                    $('#payment-qr').css('display', 'block');
-                                    $('#payment-qr').attr('src', svgDataUrl);
-                                } else {
-                                    console.error("Invalid response type. Expected a string.");
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error("QR generation failed: " + error);
-                            }
-                        });
-                    }).fail(function(xhr, status, error) {
-                        console.error("Request failed with status: " + status + ", error: " + error);
-                        console.error("Response: " + xhr.responseText);
-                    });
                 },
                 error: function (xhr) {
                     console.log('An error occurred: ' + xhr.responseJSON.message);
                 }
         });
     });
+
+$("#tryspeedbtn").on('click',function(e){
+    var SPEED_SECRET_KEY = "{{ env('SPEED_SECRET_KEY') }}";
+    var encodedKey = btoa(SPEED_SECRET_KEY);
+    var famount = $('#tryspeedamountInput').val();
+    var settings = {
+        "url": "https://api.tryspeed.com/payments",
+        "method": "POST",
+        "timeout": 0,
+        "headers": {
+            "Content-Type": "application/json",
+            "Authorization": "Basic " + encodedKey
+        },
+        "data": JSON.stringify({
+            "currency": "USD",
+            "amount": famount,
+            "success_message":"Your payment request has been completed",
+            "payment_methods":["lightning"]
+        }),
+    };
+                // Show the loading indicator
+    $('#loading-indicator').css('display', 'block');
+    $.ajax(settings).done(function(response) {
+
+        var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
+        var id = response.expires_at;
+        console.log(checkoutUrl);
+
+
+        $.ajax({
+            url: '/generate-invoice-qr',
+            method: 'POST',
+            data: {
+                payment_request: checkoutUrl
+            },
+            success: function(qrCodeUrl) {
+                console.log("Received response:", qrCodeUrl); // Debug the raw response
+
+                // Ensure it's a string before calling `replace`
+                if (typeof qrCodeUrl === "string") {
+                    qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
+                    var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
+                    $('#loading-indicator').css('display', 'none');
+                    // $('#payment-qr').css('display', 'block');
+                    // $('#payment-qr').attr('src', svgDataUrl);
+                    var form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{{route('show.deposit.invoice')}}";
+
+                    // Create a hidden input to hold the svgDataUrl
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'svgDataUrl';
+                    input.value = svgDataUrl;
+                    form.appendChild(input);
+
+                    var input2 = document.createElement('input');
+                    input2.type = 'hidden';
+                    input2.name = 'checkoutUrl';
+                    input2.value = checkoutUrl;
+                    form.appendChild(input2);
+
+                    var input3 = document.createElement('input');
+                    input3.type = 'hidden';
+                    input3.name = 'id';
+                    input3.value = id;
+                    form.appendChild(input3);
+
+                    var inputCsrf = document.createElement('input');
+                    inputCsrf.type = 'hidden';
+                    inputCsrf.name = '_token';
+                    inputCsrf.value = '{{ csrf_token() }}'; // Laravel's CSRF token helper
+                    form.appendChild(inputCsrf);
+
+                    // Append the form to the body and submit it
+                    document.body.appendChild(form);
+                    form.submit();
+                } else {
+                    console.error("Invalid response type. Expected a string.");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("QR generation failed: " + error);
+            }
+        });
+    }).fail(function(xhr, status, error) {
+        console.error("Request failed with status: " + status + ", error: " + error);
+        console.error("Response: " + xhr.responseText);
+    });
+});
      // Prevent default button behavior
     // Toggle form visibility based on payment method selection
     document.getElementById('payment-method').addEventListener('change', function () {
         const visaForm = document.getElementById('visa-form');
         const mastercardForm = document.getElementById('mastercard-form');
 
+        if(this.value === 'tryspeed') {
+            $('#tryspeedbtn').css('display', 'block');
+            $('#tryspeedamount').css('display', 'block');
 
-                // Update the checksum field in the Visa form
+        }
 
         // Show the selected form
         if (this.value === 'visa') {

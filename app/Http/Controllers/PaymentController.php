@@ -40,6 +40,14 @@ class PaymentController extends Controller
         return view('deposit',compact('games','userId'));
     }
 
+    public function showInvoice(Request $request)
+    {
+        $svgDataUrl = $request->input('svgDataUrl');
+        $checkoutUrl = $request->input('checkoutUrl');
+        $invoiceid = $request->input('id');
+        return view('invoice', compact('svgDataUrl', 'checkoutUrl','invoiceid'));
+    }
+
     public function generateInvoiceQr(Request $request)
     {
         // Assuming you have the Lightning payment request in the response from the external API
