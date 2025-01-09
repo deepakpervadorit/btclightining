@@ -77,7 +77,7 @@ padding: 35px 75px !important;">
                         <div class="row mb-3">
                             <label for="email" class="col-form-label ">{{ __('Email Address') }}</label>
 
-                            <input type="text"  name="merchantid" value="{{$merchantId}}" hidden>
+                            <input type="text"  name="merchantid" value="{{$merchantid}}" hidden>
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
 
                                 @error('email')

@@ -22,20 +22,22 @@ class StoreController extends Controller
     public function index()
     {
         // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
-        $user = DB::table('staff')->where('staff.role_id','9')->join('role_staff', 'staff.id', '=', 'role_staff.staff_id')  // Join staff with role_staff
+        $user = DB::table('staff')->where('staff.role_id','9')
+                    ->join('role_staff', 'staff.id', '=', 'role_staff.staff_id')  // Join staff with role_staff
                     ->join('roles', 'role_staff.role_id', '=', 'roles.id')       // Join role_staff with roles to get role name
                     ->select('staff.*', 'roles.name as role_name')
+                    ->groupBy('staff.id')
                     ->orderBy('created_at', 'desc')->get();
-        
+
         return view('admin.store.index', compact('user'));
     }
-    
+
     public function checkbook_users()
     {
         $staffId = session('staff_id'); // Retrieves 'staff_id' from the session
         // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
         $user = DB::table('user_account')->orderBy('created_at', 'desc')->get();
-    
+
         return view('admin.useraccount.index', compact('user'));
     }
     public function checkbook_usersbyid()
@@ -45,7 +47,7 @@ class StoreController extends Controller
         $user = DB::table('user_account')->where('userid',$staffId)->orderBy('created_at', 'desc')->get();
         return view('admin.useraccount.index', compact('user'));
     }
-    
+
 
     // Show the form for creating a new user member
     public function create()
@@ -62,7 +64,7 @@ class StoreController extends Controller
     $password = bcrypt($request->input('password'));
     $gateways = implode(",",$request->input('gateways'));
     $transaction_fees = $request->input('transaction_fees');
-    
+
 
     // Insert user's payment account into the database
     $id = DB::table('staff')->insertGetId([
@@ -71,19 +73,19 @@ class StoreController extends Controller
         'password' => $password,
         'role_id' => 9,
     ]);
-    
+
     DB::table('role_staff')->insert([
         'staff_id' => $id,
         'role_id' => 9,
     ]);
-    
+
     DB::table('store_details')->insert([
         'store_id' => $id,
         'gateways' => $gateways,
         'transacxtion_fees' => $transaction_fees,
     ]);
-    
-    
+
+
 
     // Redirect with success message
     return redirect()->route('admin.merchant.list')->with('success',' Account created successfully');
@@ -95,10 +97,10 @@ class StoreController extends Controller
     {
         // Fetch the user member
         $user = DB::table('user_account')->where('id', $id)->first();
-    
+
         return view('admin.useraccount.edit', compact('user'));
     }
-    
+
 
     // Update the specified user member in storage
     public function update(Request $request, $id)
@@ -110,7 +112,7 @@ class StoreController extends Controller
         $address = $request->input('line_1');
         $cardNumber = $request->input('card_number');
         $cvv = $request->input('cvv');
-        $expirationDate = $request->input('expiration_date'); 
+        $expirationDate = $request->input('expiration_date');
 
         if(DB::table('user_account')->where('user_id', $request->input('username'))->where('payment_method','CARD')->exists()){
 
@@ -119,7 +121,7 @@ class StoreController extends Controller
             $this->checkbookService->deletePrevCardAccount($card_id, $api_key, $api_secret);
 
         }
-        
+
 
         $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
         // Update the user member's information in the 'user' table
@@ -135,10 +137,10 @@ class StoreController extends Controller
             'cvv' => $request->input('cvv'),
             'expiration_date' => $request->input('expiration_date'),
         ]);
-    
+
         return redirect()->route('user.checkbook_usersbyid')->with('success', 'User updated successfully');
     }
-    
+
 
     // Remove the specified user member from storage
     public function destroy(Request $request, $id)
@@ -164,7 +166,7 @@ class StoreController extends Controller
 }
    public function toggleVerify($id)
     {
-        
+
         // Retrieve the member by ID
         $member = DB::table('users')->where('id', $id)->first();
         if (!$member) {
@@ -178,7 +180,7 @@ class StoreController extends Controller
         // Redirect back to the previous page or a specific page with a success message
         return redirect()->back()->with('success', 'Verification status updated successfully.');
     }
-    
+
     public function virtualcard(Request $request)
     {
         // Get staff ID from the session
@@ -214,13 +216,13 @@ class StoreController extends Controller
 
         // Create JWT Header and Payload
         $header = json_encode([
-            'alg' => 'HS256', 
-            'typ' => 'JWT', 
+            'alg' => 'HS256',
+            'typ' => 'JWT',
             'kid' => $api_key // Public key
         ]);
 
         $payload = json_encode([
-            'id' => $vccid, 
+            'id' => $vccid,
             'exp' => $timestamp
         ]);
 
@@ -230,8 +232,8 @@ class StoreController extends Controller
 
         // Generate Signature using the Secret Key
         $signature = hash_hmac(
-            'sha256', 
-            $base64UrlHeader . "." . $base64UrlPayload, 
+            'sha256',
+            $base64UrlHeader . "." . $base64UrlPayload,
             $api_secret_key, // Use the secret key for signing
             true
         );
@@ -284,7 +286,7 @@ class StoreController extends Controller
     }*/
 // public function toggleVerify($id)
 // {
-    
+
 //     // Retrieve the member by ID
 //     $member = DB::table('users')->where('id', $id)->first();
 //     if (!$member) {

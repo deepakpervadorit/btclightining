@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth; // Add this line
+use App\Models\User;
+use Illuminate\Support\Facades\Crypt;
 
 class LoginController extends Controller
 {
@@ -84,7 +86,7 @@ public function login(Request $request)
     $user = DB::table('users')
         ->where('email', $credentials['email'])
         ->first();
-        
+
         $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
         ->first();
     // Determine if the credentials are valid for staff
@@ -112,13 +114,13 @@ public function login(Request $request)
         Session::put('staff_email', $user->email);
         Session::put('staff_role', 'user'); // Add a role indicator
         $request->session()->regenerate();
-        
-        DB::table('role_staff')->insert([
-            'staff_id' => $user->id,
-            'role_id' => '5',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+
+        // DB::table('role_staff')->insert([
+        //     'staff_id' => $user->id,
+        //     'role_id' => '5',
+        //     'created_at' => now(),
+        //     'updated_at' => now(),
+        // ]);
         return redirect()->intended('/dashboard')->with('success', 'Logged in successfully as user.');
         } else {
             return  back()->withErrors([
@@ -134,31 +136,40 @@ public function login(Request $request)
 }
 
 
-//     public function showRegisterForm(Request $request)
-//     {
-//   return view('admin.register');
-// }
-//     public function register(Request $request)
-//     {
-        
-//         // Validate registration data
-//         $validated = $request->validate([
-//             'name' => 'required|string|max:255',
-//             'email' => 'required|email|unique:users,email', // Ensure email is unique
-//             'password' => 'required|confirmed|min:8', // Password confirmation and minimum length
-//         ]);
+    public function showRegisterForm($merchantid)
+    {
+        $merchantid = Crypt::decrypt($merchantid);
+        return view('auth.register',compact('merchantid'));
+    }
+    public function register(Request $request)
+    {
 
-//         // Create the user with the validated data and hashed password
-//         $user = User::create([
-//             'name' => $validated['name'],
-//             'email' => $validated['email'],
-//             'password' => Hash::make($validated['password']), // Hash the password before saving
-//             'role' => 'User',
-//         ]);
+        // Validate registration data
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email', // Ensure email is unique
+            'password' => 'required|confirmed|min:8', // Password confirmation and minimum length
+            'merchantid' => 'required',
+        ]);
 
-//         // Redirect to the dashboard or intended page with a success message
-//         return redirect()->route('login')->with('success', 'Registration successful!');
-//     }
+        // Create the user with the validated data and hashed password
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']), // Hash the password before saving
+            'role' => 'User',
+            'created_by' => $validated['merchantid'],
+        ]);
+        DB::table('role_staff')->insert([
+                'staff_id' => $user->id,
+                'role_id' => '5',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        // Redirect to the dashboard or intended page with a success message
+        return redirect()->route('login')->with('success', 'Registration successful!');
+    }
 
     // Handle logout
     public function logout(Request $request)

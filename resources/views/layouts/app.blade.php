@@ -193,9 +193,15 @@ a.navbar-brand.text-white.mb-4 {
 
         <ul class="navbar-nav">
             <li class="nav-item">
+                @if($roleName == "Merchant")
+                <a class="nav-link active" href="{{ url('/merchant/dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
+                </a>
+                @else
                 <a class="nav-link active" href="{{ route('dashboard') }}">
                     <i class="fas fa-tachometer-alt"></i><span> Dashboard</span>
                 </a>
+                @endif
             </li>
             @php
                 $staffId = session('staff_id');
@@ -261,6 +267,8 @@ a.navbar-brand.text-white.mb-4 {
             <span class="nav-item">
                 @if($roleName == "Merchant")
                 <a href="{{ route('logout') }}" class="nav-link" ><i class="fas fa-sign-out"></i><span>Logout</span></a>
+                @elseif($roleName == "")
+                <a href="{{ route('logout') }}" class="nav-link" ><i class="fas fa-sign-out"></i><span>Logout</span></a>
                 @else
                 <a href="{{ route('admin.logout') }}" class="nav-link" ><i class="fas fa-sign-out"></i><span>Logout</span></a>
                 @endif
@@ -292,6 +300,8 @@ a.navbar-brand.text-white.mb-4 {
         <ul class="profile-dropdown-menu list-unstyled shadow-sm bg-white rounded">
             <li><a href="#" class="dropdown-item">View Profile</a></li>
             @if($roleName == "Merchant")
+            <li><a href="{{ route('logout') }}" class="dropdown-item">Logout</a></li>
+            @elseif($roleName == "")
             <li><a href="{{ route('logout') }}" class="dropdown-item">Logout</a></li>
             @else
             <li><a href="{{ route('admin.logout') }}" class="dropdown-item">Logout</a></li>

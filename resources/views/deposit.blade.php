@@ -115,7 +115,7 @@ footer {
                             <button type="submit" id="mastercardbtn" class="btn btn-primary">Submit</button>
 
                         </form>
-                        <div id="loading-indicator" style="display: none;">Loading...</div>
+                        <div id="loading-indicator" class="text-center" style="display: none;">Loading...</div>
                         <img id="payment-qr" alt="Payment QR Code" style="display: none;" />
                         </div>
                     </div>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Crypt;
 
 class DashboardController extends Controller
 {
@@ -70,18 +71,18 @@ public function index()
     $roleId = DB::table('staff')
     ->where('id', $userId)
     ->value('role_id');
-    
+
     $roleName = DB::table('roles')
         ->where('id', $roleId)
         ->value('name');
-        
+    $encryptmerchantid = Crypt::encrypt(session('staff_id'));
     $permissions = DB::table('permissions')
     ->join('permission_role', 'permissions.id', '=', 'permission_role.permission_id')
     ->where('permission_role.role_id', $roleId)
     ->pluck('permissions.name');
     // Now both $depositData and $withdrawData hold totals for each week
     // Return the view with all the data
-    return view('merchant.dashboard', compact('userId','permissions','roleName'));
+    return view('merchant.dashboard', compact('userId','permissions','roleName','encryptmerchantid'));
   }
 
 
