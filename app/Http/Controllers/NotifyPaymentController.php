@@ -27,12 +27,12 @@ use Validator;
 use Illuminate\Support\Facades\DB;
 
 class NotifyPaymentController extends Controller{
-    
+
         public function notify(Request $request)
         {
             try {
                 $depositTransaction = DepositTransaction::where('transaction_id', $request->merchantTransactionId)->first();
-    
+
                 if (!$depositTransaction) {
                     // Log to the custom api_error_log channel if transaction is not found
                     Log::channel('api_error_log')->error('Transaction not found', [
@@ -42,7 +42,7 @@ class NotifyPaymentController extends Controller{
                         'error' => 'Transaction not found',
                     ], 404);
                 }
-    
+
                 // Process the deposit transaction
                 $depositTransaction->paymentId = $request->paymentId;
                 $depositTransaction->status = $request->status;
@@ -69,12 +69,12 @@ class NotifyPaymentController extends Controller{
                 $depositTransaction->bankReferenceId = $request->bankReferenceId;
                 $depositTransaction->terminalId = $request->terminalId;
                 $depositTransaction->update();
-    
+
                 return response()->json([
                     'message' => 'Transaction saved successfully',
                     'data' => $depositTransaction
                 ], 200);
-    
+
             } catch (Exception $e) {
                 // Log to the custom api_error_log channel if an exception occurs
                 Log::channel('api_error_log')->error('Transaction processing failed', [
@@ -88,13 +88,13 @@ class NotifyPaymentController extends Controller{
                 ], 500);
             }
         }
-        
-        
+
+
         public function PayoutNotify(Request $request)
         {
             try {
                 $payoutTransaction = PayoutTransaction::where('transaction_id', $request->merchantTransactionId)->first();
-    
+
                 if (!$payoutTransaction) {
                     // Log to the custom api_error_log channel if transaction is not found
                     Log::channel('api_error_log')->error('Transaction not found', [
@@ -104,7 +104,7 @@ class NotifyPaymentController extends Controller{
                         'error' => 'Transaction not found',
                     ], 404);
                 }
-    
+
                 // Process the deposit transaction
                 $payoutTransaction->paymentId = $request->paymentId;
                 $payoutTransaction->status = $request->status;
@@ -131,12 +131,12 @@ class NotifyPaymentController extends Controller{
                 $payoutTransaction->bankReferenceId = $request->bankReferenceId;
                 $payoutTransaction->terminalId = $request->terminalId;
                 $payoutTransaction->update();
-    
+
                 return response()->json([
                     'message' => 'Transaction saved successfully',
-                    'data' => $depositTransaction
+                    'data' => $payoutTransaction
                 ], 200);
-    
+
             } catch (Exception $e) {
                 // Log to the custom api_error_log channel if an exception occurs
                 Log::channel('api_error_log')->error('Transaction processing failed', [

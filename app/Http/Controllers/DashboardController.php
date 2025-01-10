@@ -79,15 +79,16 @@ class DashboardController extends Controller
         ->where('permission_role.role_id', $roleId)
         ->pluck('permissions.name');
 
-        $deposit = DB::table('deposit_transactions')->where('user_id',$userId)->sum('amount');
+        $usddeposit = DB::table('deposits')->where('user_id',$userId)->where('currency','USD')->sum('amount');
+        $eurdeposit = DB::table('deposits')->where('user_id',$userId)->where('currency','EUR')->sum('amount');
         $withdrawal = DB::table('withdrawals')->where('userid',$userId)->sum('amount');
-        $depositCount = DB::table('deposit_transactions')->where('user_id',$userId)->count();
+        $depositCount = DB::table('deposits')->where('user_id',$userId)->count();
         $withdrawalCount = DB::table('withdrawals')->where('userid',$userId)->count();
         $transactions = $depositCount + $withdrawalCount;
         $moneyout = DB::table('withdrawals')->where('userid',$userId)->where('status','Paid')->sum('amount');
         // Now both $depositData and $withdrawData hold totals for each week
         // Return the view with all the data
-        return view('admin.dashboard', compact('chartLabels', 'depositData', 'withdrawData', 'totalDeposit', 'avgDeposit', 'countDeposit', 'topDepositor', 'totalWithdraw', 'avgWithdraw', 'countWithdraw', 'topWithdraw','userId','permissions','roleName','deposit','withdrawal','depositCount','withdrawalCount','transactions','moneyout'));
+        return view('admin.dashboard', compact('chartLabels', 'depositData', 'withdrawData', 'totalDeposit', 'avgDeposit', 'countDeposit', 'topDepositor', 'totalWithdraw', 'avgWithdraw', 'countWithdraw', 'topWithdraw','userId','permissions','roleName','usddeposit','eurdeposit','withdrawal','depositCount','withdrawalCount','transactions','moneyout'));
     }
 
 

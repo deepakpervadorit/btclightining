@@ -62,7 +62,7 @@ footer {
                             </select>
                         </div>
                         <div class="mb-3" id="tryspeedamount" style="display:none;">
-                            <label for="payment-method" class="form-label">Amount:</label>
+                            <label for="payment-method" class="form-label">Amount (USD):</label>
                             <input class="form-control" type="text" value="" id="tryspeedamountInput"/>
                             </div>
                         <a href="javascript:void(0);" id="tryspeedbtn" class="btn btn-primary" style="display:none;">Create Invoice</a>
@@ -81,8 +81,8 @@ footer {
                             <input type="hidden" name="merchantRedirectUrl" value="{{ env('MERCHANT_REDIRECT_URL') }}" />
                             <input type="hidden" name="notificationUrl" value="{{ env('NOTIFICATION_URL') }}" />
                             <div class="mb-3">
-                            <label for="payment-method" class="form-label">Amount:</label>
-                            <input class="form-control" type="text" name="amount" value="" id="amountInput"/>
+                            <label for="payment-method" class="form-label">Amount (EUR):</label>
+                            <input class="form-control" type="text" name="amount" value="" id="vamountInput"/>
                             </div>
                             <input type="hidden" id="vsecret-key" name="vsecret-key" value="{{ env('SECRET_KEY') }}">
                                 <button type="submit" id="visabtn" class="btn btn-primary">Submit</button>
@@ -104,12 +104,12 @@ footer {
                             <input type="hidden" name="currency" value="EUR" />
                             <input type="hidden" name="merchantRedirectUrl" value="{{ env('MERCHANT_REDIRECT_URL') }}" />
                             <input type="hidden" name="notificationUrl" value="{{ env('NOTIFICATION_URL') }}" />
-                            <input type="hidden" name="terminalid" value="{{ env('TERMINAL_ID') }}" />
+                            {{-- <input type="hidden" name="terminalid" value="{{ env('TERMINAL_ID') }}" />
                             <input type="hidden" name="paymentMode" value="{{ env('PAYMENT_MODE') }}" />
-                            <input type="hidden" name="paymentBrand" value="{{ env('PAYMENT_BRAND') }}" />
+                            <input type="hidden" name="paymentBrand" value="{{ env('PAYMENT_BRAND') }}" /> --}}
                             <div class="mb-3">
-                            <label for="payment-method" class="form-label">Amount:</label>
-                            <input class="form-control" type="text" name="amount" value="" id="amountInput"/>
+                            <label for="payment-method" class="form-label">Amount (EUR):</label>
+                            <input class="form-control" type="text" name="amount" value="" id="mamountInput"/>
                             </div>
                             <input type="hidden" id="msecret-key" name="msecret-key" value="{{ env('SECRET_KEY') }}">
                             <button type="submit" id="mastercardbtn" class="btn btn-primary">Submit</button>
@@ -126,7 +126,7 @@ footer {
         <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <script>
-    document.getElementById('amountInput').addEventListener('blur', function() {
+    document.getElementById('vamountInput').addEventListener('blur', function() {
     // Get the input value
     let value = parseFloat(this.value);
 
@@ -134,12 +134,12 @@ footer {
     if (!isNaN(value)) {
         // Format the number to always show 2 decimal places
         this.value = value.toFixed(2);
-        $('#amountInput').val(this.value);
+        $('#vamountInput').val(this.value);
     }
 });
 
 // Format value to two decimal places as the user types
-document.getElementById('amountInput').addEventListener('input', function() {
+document.getElementById('vamountInput').addEventListener('input', function() {
     // Prevent invalid input by allowing only numeric input
     let value = this.value.replace(/[^0-9.]/g, ''); // Allow numbers and decimal point
 
@@ -149,11 +149,43 @@ document.getElementById('amountInput').addEventListener('input', function() {
         this.value = parseFloat(value).toFixed(2);
 
         // Set the value using jQuery
-        $('#amountInput').val(this.value);
+        $('#vamountInput').val(this.value);
 
         // Log the value to check if it's set correctly
         console.log('Input Value: ', this.value);  // Log the value of 'this.value'
-        console.log('jQuery Value: ', $('#amountInput').val());  // Log the value using jQuery
+        console.log('jQuery Value: ', $('#vamountInput').val());  // Log the value using jQuery
+
+    }
+});
+
+document.getElementById('mamountInput').addEventListener('blur', function() {
+    // Get the input value
+    let value = parseFloat(this.value);
+
+    // If the value is a number and not NaN
+    if (!isNaN(value)) {
+        // Format the number to always show 2 decimal places
+        this.value = value.toFixed(2);
+        $('#mamountInput').val(this.value);
+    }
+});
+
+// Format value to two decimal places as the user types
+document.getElementById('mamountInput').addEventListener('input', function() {
+    // Prevent invalid input by allowing only numeric input
+    let value = this.value.replace(/[^0-9.]/g, ''); // Allow numbers and decimal point
+
+    // If there's a valid numeric value, format it
+    if (value && !isNaN(value)) {
+        // Parse and reformat to 2 decimal places
+        this.value = parseFloat(value).toFixed(2);
+
+        // Set the value using jQuery
+        $('#mamountInput').val(this.value);
+
+        // Log the value to check if it's set correctly
+        console.log('Input Value: ', this.value);  // Log the value of 'this.value'
+        console.log('jQuery Value: ', $('#mamountInput').val());  // Log the value using jQuery
 
     }
 });
@@ -184,11 +216,49 @@ document.getElementById('amountInput').addEventListener('input', function() {
 }
 </script>
 <script>
+    $("#mastercard-form").on("submit", function(e){
+        e.preventDefault();
+        const visaForm = document.getElementById('visa-form');
+        const mastercardForm = document.getElementById('mastercard-form');
+        const visaAmount = mastercardForm.querySelector('input[name="amount"]').value;
+        const merchantTransactionId = mastercardForm.querySelector('input[name="merchantTransactionId"]').value;
+        const secretKey = mastercardForm.querySelector('input[name="msecret-key"]').value;
+        const memberId = mastercardForm.querySelector('input[name="memberId"]').value;
+        const user_id = visaForm.querySelector('input[name="user_id"]').value;
+        const totype = mastercardForm.querySelector('input[name="totype"]').value;
+        const famount = visaAmount;
+        const currency = mastercardForm.querySelector('input[name="currency"]').value;
+        const merchantRedirectUrl = mastercardForm.querySelector('input[name="merchantRedirectUrl"]').value;
+        const checksumString = `${memberId}|${totype}|${famount}|${merchantTransactionId}|${merchantRedirectUrl}|${secretKey}`;
+        const md5checksumstring = md5(checksumString);
+        mastercardForm.querySelector('input[name="checksum"]').value = md5checksumstring;
+        console.log(md5checksumstring);
+        $.ajax({
+        url: "{{ url('/store') }}", // Laravel route
+        type: "POST",
+        data: {
+            transaction_id: merchantTransactionId, // Replace with dynamic data
+            user_id: '{{$userId}}',
+            amount: famount,
+            currency: currency,
+            gateway:"Fortune Finex",
+            status: "Pending",
+            _token: "{{ csrf_token() }}" // CSRF token for security
+        },
+        success: function (response) {
+            console.log(response.message); // Success message
+            $("#mastercard-form").submit();
+        },
+        error: function (xhr) {
+            console.log('An error occurred: ' + xhr.responseJSON.message);
+        }
+        });
+    });
     $("#visa-form").on("submit", function (e) {
         e.preventDefault();
         var paymentMethodSelect = $('payment-method').val();
         const visaForm = document.getElementById('visa-form');
-        const mastercardForm = document.getElementById('mastercard-form');
+
         const visaAmount = visaForm.querySelector('input[name="amount"]').value;
         const merchantTransactionId = visaForm.querySelector('input[name="merchantTransactionId"]').value;
         const secretKey = visaForm.querySelector('input[name="vsecret-key"]').value;
@@ -197,17 +267,10 @@ document.getElementById('amountInput').addEventListener('input', function() {
         const totype = visaForm.querySelector('input[name="totype"]').value;
         const merchantRedirectUrl = visaForm.querySelector('input[name="merchantRedirectUrl"]').value;
         const famount = visaAmount;
+        const currency = visaForm.querySelector('input[name="currency"]').value;
         const checksumString = `${memberId}|${totype}|${famount}|${merchantTransactionId}|${merchantRedirectUrl}|${secretKey}`;
         const checksumInputInVisaForm = visaForm.querySelector('input[name="checksum"]').value;
         const md5checksumstring = md5(checksumString);
-        console.log(visaAmount);
-        console.log(merchantTransactionId);
-        console.log(secretKey);
-        console.log(memberId);
-        console.log(totype);
-        console.log(merchantRedirectUrl);
-        console.log(famount);
-        console.log(checksumString);
         visaForm.querySelector('input[name="checksum"]').value = md5checksumstring;
                 console.log(md5checksumstring);
                 $.ajax({
@@ -216,12 +279,15 @@ document.getElementById('amountInput').addEventListener('input', function() {
                 data: {
                     transaction_id: merchantTransactionId, // Replace with dynamic data
                     user_id: '{{$userId}}',
+                    amount: famount,
+                    currency: currency,
+                    gateway:"Fortune Finex",
                     status: "Pending",
                     _token: "{{ csrf_token() }}" // CSRF token for security
                 },
                 success: function (response) {
                     console.log(response.message); // Success message
-
+                    $("#visa-form").submit();
                 },
                 error: function (xhr) {
                     console.log('An error occurred: ' + xhr.responseJSON.message);
@@ -254,8 +320,28 @@ $("#tryspeedbtn").on('click',function(e){
 
         var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
         var id = response.expires_at;
+        var invoiceid = response.id;
         console.log(checkoutUrl);
+        $.ajax({
+                url: "{{ url('/store') }}", // Laravel route
+                type: "POST",
+                data: {
+                    transaction_id: invoiceid, // Replace with dynamic data
+                    user_id: '{{$userId}}',
+                    amount: famount,
+                    currency: "USD",
+                    gateway:"Try Speed",
+                    status: "Pending",
+                    _token: "{{ csrf_token() }}" // CSRF token for security
+                },
+                success: function (response) {
+                    console.log(response.message); // Success message
 
+                },
+                error: function (xhr) {
+                    console.log('An error occurred: ' + xhr.responseJSON.message);
+                }
+        });
 
         $.ajax({
             url: '/generate-invoice-qr',
@@ -295,6 +381,12 @@ $("#tryspeedbtn").on('click',function(e){
                     input3.name = 'id';
                     input3.value = id;
                     form.appendChild(input3);
+
+                    var input4 = document.createElement('input');
+                    input4.type = 'hidden';
+                    input4.name = 'invoiceid';
+                    input4.value = invoiceid;
+                    form.appendChild(input4);
 
                     var inputCsrf = document.createElement('input');
                     inputCsrf.type = 'hidden';
@@ -338,34 +430,7 @@ $("#tryspeedbtn").on('click',function(e){
         } else if (this.value === 'mastercard') {
         console.log('mc');
         mastercardForm.style.display = 'block';
-                const visaAmount = mastercardForm.querySelector('input[name="amount"]').value;
-                const merchantTransactionId = mastercardForm.querySelector('input[name="merchantTransactionId"]').value;
-                const secretKey = mastercardForm.querySelector('input[name="msecret-key"]').value;
-                const memberId = mastercardForm.querySelector('input[name="memberId"]').value;
-                const user_id = visaForm.querySelector('input[name="user_id"]').value;
-                const totype = mastercardForm.querySelector('input[name="totype"]').value;
-                const famount = visaAmount + '.00';
-                const merchantRedirectUrl = mastercardForm.querySelector('input[name="merchantRedirectUrl"]').value;
-                const checksumString = `${memberId}|${totype}|${famount}|${merchantTransactionId}|${merchantRedirectUrl}|${secretKey}`;
-                const md5checksumstring = md5(checksumString);
-                mastercardForm.querySelector('input[name="checksum"]').value = md5checksumstring;
-                console.log(md5checksumstring);
-                $.ajax({
-                url: "{{ url('/store') }}", // Laravel route
-                type: "POST",
-                data: {
-                    transaction_id: merchantTransactionId, // Replace with dynamic data
-                    user_id: '{{$userId}}',
-                    status: "Pending",
-                    _token: "{{ csrf_token() }}" // CSRF token for security
-                },
-                success: function (response) {
-                    console.log(response.message); // Success message
-                },
-                error: function (xhr) {
-                    console.log('An error occurred: ' + xhr.responseJSON.message);
-                }
-        });
+
         }
     });
 </script>

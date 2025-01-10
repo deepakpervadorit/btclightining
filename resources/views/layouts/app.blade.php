@@ -206,17 +206,32 @@ a.navbar-brand.text-white.mb-4 {
             @php
                 $staffId = session('staff_id');
             @endphp
-            @if($staffId == '3')
+            @if ($permissions->contains('Deposit'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('deposit') }}">
-                    <i class="fas fa-wallet"></i> <span>Deposit</span></a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">
-                    <i class="fas fa-money-bill"></i><span> Withdrawal</span></a></li>
+                    <i class="fas fa-wallet"></i> <span>Deposits</span></a></li>
+            @endif
+            @if (session('staff_role') == 'User')
+            <li class="nav-item"><a class="nav-link" href="{{ route('deposit') }}">
+                <i class="fas fa-wallet"></i> <span>Deposits</span></a></li>
+
+            @endif
+            @if ($permissions->contains('Withdrawal'))
+                {{-- <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">
+                    <i class="fas fa-money-bill"></i><span> Withdrawal</span></a></li> --}}
+            @endif
+            @if ($permissions->contains('Staff'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('staff.index') }}">
                     <i class="fas fa-users"></i> <span>Staff</span></a></li>
+            @endif
+            @if ($permissions->contains('Disputes'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('disputes') }}">
                     <i class="fas fa-exclamation-triangle"></i><span> Disputes</span></a></li>
+            @endif
+            @if ($permissions->contains('Service Provider'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('service_provider') }}">
                     <i class="fas fa-concierge-bell"></i><span> Service Provider</span></a></li>
+            @endif
+            @if ($permissions->contains('Stripe Setting') && $permissions->contains('Square Settings') && $permissions->contains('Checkbook Settings'))
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-credit-card"></i><span> Payment Options</span>
@@ -227,6 +242,8 @@ a.navbar-brand.text-white.mb-4 {
                         <li><a class="dropdown-item" href="{{ route('admin.checkbook.keys') }}">Checkbook</a></li>
                     </ul>
                 </li>
+            @endif
+            @if ($permissions->contains('Roles and Permissions'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('roles.index') }}">
                     <i class="fas fa-user-shield"></i> <span>Roles and Permission</span></a></li>
             @endif

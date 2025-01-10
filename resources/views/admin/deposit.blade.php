@@ -1,3 +1,6 @@
+@php
+    use Illuminate\Support\Facades\DB;
+@endphp
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
@@ -13,7 +16,7 @@
 @section('content')
 
 <style>
-    
+
     tbody tr td {
     text-align: center;
 }
@@ -30,21 +33,22 @@ thead tr th {
             <div class="sm:flex sm:items-center">
                 <div class="sm:flex-auto">
                     <h1 class="text-base font-semibold leading-6 text-gray-900">
-                        <h5 class="">Deposits</h5>  
+                        <h5 class="">Deposits</h5>
                     </h1>
-                    <p class="mt-2 text-sm text-gray-700">Received successful payment, pending staff account load.</p>
+                    <p class="mt-2 text-sm text-gray-700">Received successful payments</p>
                 </div>
             </div>
-            <table id="example" class="table" style="width:100%">
+            <table id="example" class="table table-bordered" style="width:100%">
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Method</th>
                         <th>Username</th>
                         <th>Amount Paid</th>
+                        <th>Currency</th>
                         <th>Status</th>
                         <th>Created At</th>
-                        <th>Action</th>
+                        {{-- <th>Action</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -53,24 +57,29 @@ thead tr th {
                         <td>{{ $deposit->id }}</td>
                         @php
                         $user = DB::table('staff')->where('id',$deposit->user_id)->first();
+                        if($user == null){
+                            $user = DB::table('users')->where('id',$deposit->user_id)->first();
+                        }
                         @endphp
-                        <td>{{ $deposit->paymentBrand }}</td>
+                        <td>{{ $deposit->payment_method }}</td>
                         <td>{{ $user->name }}</td>
                         <td>{{ $deposit->amount }}</td>
-                        <td>@if($deposit->status == 'Y')
-    <button class="btn btn-success">Paid</button>
-@else
-   <button class="btn btn-danger">UnPaid</button>
-@endif</td>
+                        <td>{{ $deposit->currency }}</td>
+                        <td>@if($deposit->status == 'Completed' || $deposit->status == 'Y')
+                        <button class="btn btn-success">Paid</button>
+                            @else
+                            <button class="btn btn-danger">UnPaid</button>
+                            @endif
+                        </td>
                         <td>{{ $deposit->created_at }}</td>
-                        <td>
+                        {{-- <td>
                             <!-- Delete Form -->
                             <form action="{{ route('deposits.destroy', $deposit->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn text-danger btn-sm" onclick="return confirm('Are you sure you want to delete this deposit?')">Delete</button>
                             </form>
-                        </td>
+                        </td> --}}
                     </tr>
                     @endforeach
                 </tbody>
@@ -101,7 +110,26 @@ thead tr th {
 <script>
     $(document).ready(function() {
         $('#example').DataTable({
-            "order": [[ 0, "desc" ]] // Change '8' to the index of the column you want to sort by (0-based index)
+            "order": [[ 0, "asc" ]], // Change '8' to the index of the column you want to sort by (0-based index)
+            dom: 'Bfrtip', // Include Buttons in the DOM
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    title: 'Deposits', // Title for the CSV file
+                     // Heading for the table
+                    exportOptions: {
+                        columns: ':visible' // Specify which columns to export
+                    }
+                },
+                {
+                    extend: 'excelHtml5',
+                    title: 'Deposits', // Title for the Excel file
+                     // Heading for the table
+                    exportOptions: {
+                        columns: ':visible' // Specify which columns to export
+                    }
+                } // Export as Excel
+            ]
         });
     });
 </script>

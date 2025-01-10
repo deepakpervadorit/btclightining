@@ -16,7 +16,7 @@ class AdminLoginController extends Controller
 //     {
 //         return view('login');
 //     }
-    
+
     public function showAdminLoginForm()
     {
         return view('admin.login');
@@ -83,10 +83,11 @@ public function login(Request $request)
     // Attempt to find the user in the staff table
     $staff = DB::table('staff')
         ->where('email', $credentials['email'])
+        ->where('role_id',1)
         ->first();
 
     // Attempt to find the user in the users table
-        
+
         $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
         ->first();
     // Determine if the credentials are valid for staff
@@ -120,7 +121,7 @@ public function login(Request $request)
 // }
 //     public function register(Request $request)
 //     {
-        
+
 //         // Validate registration data
 //         $validated = $request->validate([
 //             'name' => 'required|string|max:255',

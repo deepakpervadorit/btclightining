@@ -16,7 +16,7 @@
     </div>
     <div class="row">
         <div class="col-12 text-center mb-3 text-wrap">
-            <b><h3>{{$invoiceid}}</h3></b>
+            <b><h3>{{$id}}</h3></b>
         </div>
     </div>
     <img src="{{$svgDataUrl}}" alt="logo" style="width: 200px;">
@@ -62,5 +62,18 @@
           alert("Link copied to clipboard!");
       }
   }
+  setInterval(() => {
+    $.ajax({
+        url: '/check-payment-status',
+        method: 'GET',
+        data: { invoice_id: '{{ $invoiceid }}' },
+        success: function(response) {
+            if (response.status === 'completed') {
+                alert('Payment completed!');
+                window.location.href = '/update_transaction/{{ $invoiceid }}'; // Redirect to thank-you page
+            }
+        },
+    });
+}, 5000);
 </script>
 @endsection

@@ -69,7 +69,7 @@
                             <i class="las la-wallet"></i>
                         </div>
                         <div class="widget-two__content">
-                            <h3 class="text-white">${{ $deposit }}</h3>
+                            <h3 class="text-white">${{ $usddeposit }}</h3>
                             <p class="text-white">Deposits</p>
                         </div>
                     </div>
@@ -84,6 +84,29 @@
                         <div class="widget-two__content">
                             <h3 class="text-white">${{$withdrawal}}</h3>
                             <p class="text-white">Withdrawals</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xxl-3 col-sm-6">
+                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--primary">
+                        <div class="widget-two__icon b-radius--5 bg--primary">
+                            <i class="las la-wallet"></i>
+                        </div>
+                        <div class="widget-two__content">
+                            <h3 class="text-white">€{{$eurdeposit}}</h3>
+                            <p class="text-white">Deposits</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xxl-3 col-sm-6">
+                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--19">
+                        <div class="widget-two__icon b-radius--5 bg--primary">
+                            <i class="las la-money-bill-wave-alt"></i>
+                        </div>
+                        <div class="widget-two__content">
+                            <h3 class="text-white">${{$moneyout}}</h3>
+                            <p class="text-white">Total Money Out</p>
                         </div>
                     </div>
                 </div>
@@ -102,17 +125,7 @@
                 </div>
                 <!-- dashboard-w1 end -->
 
-                <div class="col-xxl-3 col-sm-6">
-                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--19">
-                        <div class="widget-two__icon b-radius--5 bg--primary">
-                            <i class="las la-money-bill-wave-alt"></i>
-                        </div>
-                        <div class="widget-two__content">
-                            <h3 class="text-white">${{$moneyout}}</h3>
-                            <p class="text-white">Total Money Out</p>
-                        </div>
-                    </div>
-                </div>
+
                 <!-- dashboard-w1 end -->
 
             </div>

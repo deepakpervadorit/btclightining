@@ -101,6 +101,7 @@ Route::get('/unauthorized', function () {
 // Permissions CRUD
 Route::resource('permissions', PermissionsController::class);
 Route::post('/generate-invoice-qr', [PaymentController::class, 'generateInvoiceQr']);
+Route::get('/check-payment-status', [PaymentController::class, 'checkPaymentStatus']);
 // Route::get('/deposit/form', [PaymentController::class, 'showForm'])->name('show.deposit.form');
 // Route::get('/payments', [PaymentController::class, 'payments'])->name('show.payments');
 // Route::post('/webhook', 'PaymentController@handleWebhook')->name('webhook');
@@ -112,6 +113,7 @@ Route::post('/thankyou', [thankyouController::class, 'thankyou'])
      ->name('thankyou');
      Route::post('/notify-payment', [NotifyPaymentController::class, 'notify'])->name('notify');
 Route::post('/payout-notify-payment', [NotifyPaymentController::class, 'PayoutNotify'])->name('notify.payout');
+Route::get('/update_transaction/{transactionid}', [PaymentController::class, 'updateDepositTransaction']);
 
 // Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 Route::get('/{merchantid}/register', [LoginController::class, 'showRegisterForm'])

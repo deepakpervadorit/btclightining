@@ -17,6 +17,7 @@ use Square\Models\CreatePaymentLinkRequest;
 use Square\Exceptions\ApiException;
 use App\Services\CheckbookService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use App\Models\Deposit;
 
 
 class PaymentController extends Controller
@@ -44,8 +45,9 @@ class PaymentController extends Controller
     {
         $svgDataUrl = $request->input('svgDataUrl');
         $checkoutUrl = $request->input('checkoutUrl');
-        $invoiceid = $request->input('id');
-        return view('invoice', compact('svgDataUrl', 'checkoutUrl','invoiceid'));
+        $id = $request->input('id');
+        $invoiceid = $request->input('invoiceid');
+        return view('invoice', compact('svgDataUrl', 'checkoutUrl','id','invoiceid'));
     }
 
     public function generateInvoiceQr(Request $request)
@@ -58,6 +60,49 @@ class PaymentController extends Controller
 
         // Return the QR code as a response, or save it as an image
         return $qrCode;
+    }
+
+    public function checkPaymentStatus(Request $request)
+    {
+        $invoiceId = $request->input('invoice_id');
+        $response = Http::withHeaders([
+            'Authorization' => 'Basic ' . base64_encode(env('SPEED_SECRET_KEY')),
+        ])->get('https://api.tryspeed.com/payments/' . $invoiceId);
+
+        if ($response->ok()) {
+            $paymentData = $response->json();
+
+            if ($paymentData['status'] === 'paid') {
+                // DB::table('deposit_transactions')->where('transaction_id',$invoiceId)->update([
+                //     'status' => 'Completed'
+                // ]);
+            return response()->json(['status' => "completed"]);
+            }
+        }
+        return response()->json(['status' => $response->json('payment_status')]);
+    }
+
+
+    public function updateDepositTransaction($transactionId) {
+        DB::table('deposit_transactions')->where('transaction_id',$transactionId)->update([
+            'status' => 'Completed'
+        ]);
+        $updatedRow = DB::table('deposit_transactions')
+        ->where('transaction_id', $transactionId)
+        ->first();
+
+        $deposit = Deposit::create([
+            'session_id' => $updatedRow->transaction_id,
+            'user_id' => $updatedRow->user_id,
+            'amount' => $updatedRow->amount,
+            'status' => $updatedRow->status,
+            'payment_method' => $updatedRow->paymentGateway,
+            'currency' => $updatedRow->currency,
+        ]);
+        if ($deposit) {
+            return redirect('/dashboard');
+        }
+
     }
     public function withdrawalForm()
     {

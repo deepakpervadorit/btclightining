@@ -112,7 +112,7 @@ public function login(Request $request)
         Session::put('staff_id', $user->id);
         Session::put('staff_name', $user->name);
         Session::put('staff_email', $user->email);
-        Session::put('staff_role', 'user'); // Add a role indicator
+        Session::put('staff_role', 'User'); // Add a role indicator
         $request->session()->regenerate();
 
         // DB::table('role_staff')->insert([

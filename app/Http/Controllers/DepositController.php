@@ -9,9 +9,23 @@ class DepositController extends Controller
 {
     public function index()
     {
-        $deposits = DB::table('deposit_transactions')
-    ->orderBy('created_at', 'asc')
-    ->get();
+        $userid = session('staff_id');
+        $role = session('staff_role');
+        if($role == "Merchant")
+        {
+            $users = DB::table('users')->where('created_by', $userid)->pluck('id');
+            $deposits = DB::table('deposits')->whereIn('user_id', $users)->orderBy('created_at', 'asc')->get();
+        }
+        elseif($role == "Superadmin")
+        {
+            $deposits = DB::table('deposits')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        }
+        elseif($role == "User")
+        {
+            $deposits = DB::table('deposits')->where('user_id', $userid)->orderBy('created_at', 'asc')->get();
+        }
         return view('admin.deposit',compact('deposits'));
     }
     public function storeDepositAmount(Request $request){
@@ -23,6 +37,7 @@ class DepositController extends Controller
         'transactionStatus' => $request->transactionStatus,
         'paymentBrand' => $request->paymentBrand,
         'paymentMode' => $request->paymentMode,
+        'paymentGateway' => $request->gateway,
         'firstName' => $request->firstName,
         'lastName' => $request->lastName,
         'amount' => $request->amount,
