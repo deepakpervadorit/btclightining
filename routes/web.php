@@ -47,6 +47,7 @@ Route::get('/', function () {
         ->name('show.deposit.form');
     Route::post('/deposit/invoice', [PaymentController::class, 'showInvoice'])
     ->name('show.deposit.invoice');
+    
         // Withdrawal Form
         Route::get('/withdrawal/form', [PaymentController::class, 'withdrawalForm'])
         ->name('show.withdrawal.form');
