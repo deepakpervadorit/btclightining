@@ -47,6 +47,8 @@ class PaymentController extends Controller
         $checkoutUrl = $request->input('checkoutUrl');
         $id = $request->input('id');
         $invoiceid = $request->input('invoiceid');
+        dd($request);
+        exit;
         return view('invoice', compact('svgDataUrl', 'checkoutUrl','id','invoiceid'));
     }
 
