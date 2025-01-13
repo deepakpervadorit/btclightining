@@ -13,5 +13,6 @@ class VerifyCsrfToken extends Middleware
     protected $except = [
         '/thankyou',  // Exclude the /thankyou URI from CSRF protection
         '/generate-invoice-qr',
+        '/deposit/invoice',
     ];
 }
