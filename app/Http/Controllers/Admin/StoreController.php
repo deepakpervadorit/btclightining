@@ -32,6 +32,15 @@ class StoreController extends Controller
         return view('admin.store.index', compact('user'));
     }
 
+    public function deposits($userid)
+    {
+        // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
+        $userids = DB::table('users')->where('created_by',$userid)->pluck('id')->toArray();
+        $deposits = DB::table('deposits')->whereIn('user_id',$userids)->orderBy('created_at', 'desc')->get();
+
+        return view('admin.deposit', compact('deposits'));
+    }
+
     public function checkbook_users()
     {
         $staffId = session('staff_id'); // Retrieves 'staff_id' from the session

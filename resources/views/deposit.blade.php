@@ -317,9 +317,9 @@ $("#tryspeedbtn").on('click',function(e){
                 // Show the loading indicator
     $('#loading-indicator').css('display', 'block');
     $.ajax(settings).done(function(response) {
-
+        console.log(response);
         var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
-        var id = response.expires_at;
+        var expires_at = response.expires_at;
         var invoiceid = response.id;
         console.log(checkoutUrl);
         $.ajax({
@@ -347,59 +347,61 @@ $("#tryspeedbtn").on('click',function(e){
             url: '/generate-invoice-qr',
             method: 'POST',
             data: {
-                payment_request: checkoutUrl
+                payment_request: checkoutUrl,
+                expires_at: expires_at,
+                invoiceid:invoiceid
             },
-            success: function(qrCodeUrl) {
-                console.log("Received response:", qrCodeUrl); // Debug the raw response
-
+            success: function(invoice) {
+                console.log(invoice); // Debug the raw response
+                window.location.href = "/deposit/invoice/"+invoice+"";
                 // Ensure it's a string before calling `replace`
-                if (typeof qrCodeUrl === "string") {
-                    qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
-                    var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
-                    $('#loading-indicator').css('display', 'none');
-                    // $('#payment-qr').css('display', 'block');
-                    // $('#payment-qr').attr('src', svgDataUrl);
-                    var form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = "{{route('show.deposit.invoice')}}";
+                // if (typeof qrCodeUrl === "string") {
+                //     qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
+                //     var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
+                //     $('#loading-indicator').css('display', 'none');
+                //     // $('#payment-qr').css('display', 'block');
+                //     // $('#payment-qr').attr('src', svgDataUrl);
+                //     var form = document.createElement('form');
+                //     form.method = 'POST';
+                //     form.action = "";
 
-                    // Create a hidden input to hold the svgDataUrl
-                    var input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'svgDataUrl';
-                    input.value = svgDataUrl;
-                    form.appendChild(input);
+                //     // Create a hidden input to hold the svgDataUrl
+                //     var input = document.createElement('input');
+                //     input.type = 'hidden';
+                //     input.name = 'svgDataUrl';
+                //     input.value = svgDataUrl;
+                //     form.appendChild(input);
 
-                    var input2 = document.createElement('input');
-                    input2.type = 'hidden';
-                    input2.name = 'checkoutUrl';
-                    input2.value = checkoutUrl;
-                    form.appendChild(input2);
+                //     var input2 = document.createElement('input');
+                //     input2.type = 'hidden';
+                //     input2.name = 'checkoutUrl';
+                //     input2.value = checkoutUrl;
+                //     form.appendChild(input2);
 
-                    var input3 = document.createElement('input');
-                    input3.type = 'hidden';
-                    input3.name = 'id';
-                    input3.value = id;
-                    form.appendChild(input3);
+                //     var input3 = document.createElement('input');
+                //     input3.type = 'hidden';
+                //     input3.name = 'id';
+                //     input3.value = id;
+                //     form.appendChild(input3);
 
-                    var input4 = document.createElement('input');
-                    input4.type = 'hidden';
-                    input4.name = 'invoiceid';
-                    input4.value = invoiceid;
-                    form.appendChild(input4);
+                //     var input4 = document.createElement('input');
+                //     input4.type = 'hidden';
+                //     input4.name = 'invoiceid';
+                //     input4.value = invoiceid;
+                //     form.appendChild(input4);
 
-                    var inputCsrf = document.createElement('input');
-                    inputCsrf.type = 'hidden';
-                    inputCsrf.name = '_token';
-                    inputCsrf.value = '{{ csrf_token() }}'; // Laravel's CSRF token helper
-                    form.appendChild(inputCsrf);
+                //     var inputCsrf = document.createElement('input');
+                //     inputCsrf.type = 'hidden';
+                //     inputCsrf.name = '_token';
+                //     inputCsrf.value = '{{ csrf_token() }}'; // Laravel's CSRF token helper
+                //     form.appendChild(inputCsrf);
 
-                    // Append the form to the body and submit it
-                    document.body.appendChild(form);
-                    form.submit();
-                } else {
-                    console.error("Invalid response type. Expected a string.");
-                }
+                //     // Append the form to the body and submit it
+                //     document.body.appendChild(form);
+                //     form.submit();
+                // } else {
+                //     console.error("Invalid response type. Expected a string.");
+                // }
             },
             error: function(xhr, status, error) {
                 console.error("QR generation failed: " + error);

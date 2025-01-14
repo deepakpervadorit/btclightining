@@ -18,6 +18,7 @@ use Square\Exceptions\ApiException;
 use App\Services\CheckbookService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Deposit;
+use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 
 
 class PaymentController extends Controller
@@ -41,27 +42,47 @@ class PaymentController extends Controller
         return view('deposit',compact('games','userId'));
     }
 
-    public function showInvoice(Request $request)
+    public function showInvoice($id)
     {
-        $svgDataUrl = $request->input('svgDataUrl');
-        $checkoutUrl = $request->input('checkoutUrl');
-        $id = $request->input('id');
-        $invoiceid = $request->input('invoiceid');
-        dd($request);
-        exit;
-        return view('invoice', compact('svgDataUrl', 'checkoutUrl','id','invoiceid'));
+        $invoice = DB::table('invoice_qrcode')->where('id',$id)->first();
+        // $svgDataUrl = $request->input('svgDataUrl');
+        // $checkoutUrl = $request->input('checkoutUrl');
+        // $id = $request->input('id');
+        // $invoiceid = $request->input('invoiceid');
+        return view('invoice', compact('invoice'));
     }
 
     public function generateInvoiceQr(Request $request)
     {
         // Assuming you have the Lightning payment request in the response from the external API
         $paymentRequest = $request->input('payment_request'); // This would be passed from your front-end via AJAX or from the API
-
+        $expires_at = $request->input('expires_at');
+        $invoiceid = $request->input('invoiceid');
         // Generate the QR Code for the Lightning payment request
-        $qrCode = QrCode::size(300)->generate($paymentRequest); // You can adjust the size as needed
+        $qrCodepng = QrCode::size(1000)
+                    ->format('png')
+                    ->generate($paymentRequest); // You can adjust the size as needed
+        $tempImagePath = storage_path('app/public/qrcode.png');
+        file_put_contents($tempImagePath, $qrCodepng);
 
+        // Optimize the generated QR code image using Spatie's image optimizer
+        ImageOptimizer::optimize($tempImagePath);
+
+        // Optionally, encode the image to Base64 for use in your frontend
+        $optimizedQrCode = file_get_contents($tempImagePath);
+        $imgDataUrl = 'data:image/png;base64,' . base64_encode($optimizedQrCode);
+
+        // Encode the SVG to a data URL
+        // $imgDataUrl = 'data:image/png;base64,' . base64_encode($qrCodepng);
         // Return the QR code as a response, or save it as an image
-        return $qrCode;
+        $invoice = DB::table('invoice_qrcode')->insertGetId([
+            'invoice_id' => $invoiceid,
+            'checkout_url' => $paymentRequest,
+            'expires_at' => $expires_at,
+            'qrcode_url' => $imgDataUrl,
+            'user_id' => session('staff_id'),
+        ]);
+        return $invoice;
     }
 
     public function checkPaymentStatus(Request $request)

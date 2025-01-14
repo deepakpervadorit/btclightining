@@ -16,10 +16,10 @@
     </div>
     <div class="row">
         <div class="col-12 text-center mb-3 text-wrap">
-            <b><h3>{{$id}}</h3></b>
+            <b><h3>{{$invoice->expires_at}}</h3></b>
         </div>
     </div>
-    <img src="{{$svgDataUrl}}" alt="logo" style="width: 200px;">
+    <img src="{{$invoice->qrcode_url}}" alt="logo" style="width: 200px;">
     <div class="row">
         <div class="col-12 text-center mb-3">
             <!--<b><h5 style="color:red;" >Please note that your transaction has yet to be completed, please click 'Open Wallet' to finalize your transaction.</h5></b>-->
@@ -28,11 +28,11 @@
         </div>
     </div>
     <div class="col-12 text-center mb-3">
-        <input class="form-control" type="text" value="{{$checkoutUrl}}" id="invoicelink" hidden>
+        <input class="form-control" type="text" value="{{$invoice->checkout_url}}" id="invoicelink" hidden>
         <button id="btnCopyBtcInvoice" class="btn btn-sm btn-outline-info me-2" type="button" onclick="copyToClipboard('invoicelink')">
              Copy Invoice
         </button>
-        <a href="lightning:{{$checkoutUrl}}" class="btn btn-sm btn-outline-danger" target="_blank">
+        <a href="lightning:{{$invoice->checkout_url}}" class="btn btn-sm btn-outline-danger" target="_blank">
              Open Wallet
         </a>
     </div>
@@ -66,11 +66,11 @@
     $.ajax({
         url: '/check-payment-status',
         method: 'GET',
-        data: { invoice_id: '{{ $invoiceid }}' },
+        data: { invoice_id: '{{$invoice->invoice_id}}' },
         success: function(response) {
             if (response.status === 'completed') {
                 alert('Payment completed!');
-                window.location.href = '/update_transaction/{{ $invoiceid }}'; // Redirect to thank-you page
+                window.location.href = '/update_transaction/{{$invoice->invoice_id}}'; // Redirect to thank-you page
             }
         },
     });

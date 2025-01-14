@@ -45,9 +45,9 @@ Route::get('/', function () {
 // Deposit and Payment Form
     Route::get('/deposit/form', [PaymentController::class, 'showForm'])
         ->name('show.deposit.form');
-    Route::post('/deposit/invoice', [PaymentController::class, 'showInvoice'])
+    Route::get('/deposit/invoice/{id}', [PaymentController::class, 'showInvoice'])
     ->name('show.deposit.invoice');
-    
+
         // Withdrawal Form
         Route::get('/withdrawal/form', [PaymentController::class, 'withdrawalForm'])
         ->name('show.withdrawal.form');
@@ -137,6 +137,7 @@ Route::name('admin.')->prefix('admin')->group(function () {
     Route::get('/merchant/create', [StoreController::class, 'create'])->name('merchant.create');
     Route::post('/merchant/add', [StoreController::class, 'store'])->name('merchant.add');
     Route::get('/merchant/list', [StoreController::class, 'index'])->name('merchant.list');
+    Route::get('/merchant/deposits/{id}', [StoreController::class, 'deposits'])->name('merchant.deposits');
     Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
@@ -145,7 +146,8 @@ Route::middleware(['staffAuth'])->group(function () {
     //Merchant Routes
     Route::name('merchant.')->prefix('merchant')->group(function () {
         Route::get('/user', [MerchantUserController::class, 'index'])->name('users.index');
-        Route::get('/user/edit', [MerchantUserController::class, 'index'])->name('user.edit');
+        Route::get('/user/edit', [MerchantUserController::class, 'edit'])->name('user.edit');
+        Route::get('/user/deposits/{id}', [MerchantUserController::class, 'deposits'])->name('user.deposits');
     });
 
 

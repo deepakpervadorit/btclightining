@@ -38,6 +38,21 @@ thead tr th {
                     <p class="mt-2 text-sm text-gray-700">Received successful payments</p>
                 </div>
             </div>
+            <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-5">
+                        <label for="start_date" class="form-label">Start Date:</label>
+                        <input type="date" id="start_date" class="form-control">
+                    </div>
+                    <div class="col-md-5">
+                        <label for="end_date" class="form-label">End Date:</label>
+                        <input type="date" id="end_date" class="form-control">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button id="filter_button" class="btn btn-primary mt-2">Filter</button>
+                    </div>
+                </div>
+            </div>
             <table id="example" class="table table-bordered" style="width:100%">
                 <thead>
                     <tr>
@@ -94,7 +109,7 @@ thead tr th {
 <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
 
 <!-- Load Bootstrap and DataTables JS files that depend on jQuery -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script> --}}
 <script src="https://cdn.datatables.net/2.1.7/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.1.7/js/dataTables.bootstrap5.js"></script>
 <script src="https://cdn.datatables.net/buttons/3.1.2/js/dataTables.buttons.js"></script>
@@ -109,7 +124,7 @@ thead tr th {
 <!-- DataTable Initialization -->
 <script>
     $(document).ready(function() {
-        $('#example').DataTable({
+        var table = $('#example').DataTable({
             "order": [[ 0, "asc" ]], // Change '8' to the index of the column you want to sort by (0-based index)
             dom: 'Bfrtip', // Include Buttons in the DOM
             buttons: [
@@ -131,5 +146,41 @@ thead tr th {
                 } // Export as Excel
             ]
         });
+
+        $('#filter_button').click(function() {
+            var startDate = $('#start_date').val();
+            var endDate = $('#end_date').val();
+
+            // Apply custom filtering to the DataTable
+            table.draw();
+        });
+
+        // Custom filtering function to filter by date range
+        $.fn.dataTable.ext.search.push(
+            function(settings, data, dataIndex) {
+                var startDate = $('#start_date').val();
+                var endDate = $('#end_date').val();
+                var date = data[6]; // Assuming the 'Created At' column is at index 6 (0-based index)
+
+                if (startDate && endDate) {
+                    // Convert to date format
+                    var start = new Date(startDate);
+                    var end = new Date(endDate);
+                    var rowDate = new Date(date);
+                    start.setHours(0, 0, 0, 0);
+                    end.setHours(23, 59, 59, 999);
+                    rowDate.setHours(0, 0, 0, 0);
+                    console.log(rowDate);
+                    console.log(start);
+                    console.log(end);
+                    // Check if the date is within the range
+                    if (rowDate >= start && rowDate <= end) {
+                        return true;
+                    }
+                    return false;
+                }
+                return true; // If no date range is selected, show all records
+            }
+        );
     });
 </script>

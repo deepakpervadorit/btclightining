@@ -8,11 +8,13 @@
         "php": "^7.3|^8.0",
         "fruitcake/laravel-cors": "^3.0",
         "guzzlehttp/guzzle": "^7.0.1",
+        "intervention/image": "^3.10",
         "laravel/framework": "^8.75",
         "laravel/sanctum": "^2.11",
         "laravel/tinker": "^2.5",
         "laravel/ui": "^3.4",
         "simplesoftwareio/simple-qrcode": "^2.0",
+        "spatie/laravel-image-optimizer": "^1.8",
         "square/square": "38.1.0.20240919"
     },
     "require-dev": {
