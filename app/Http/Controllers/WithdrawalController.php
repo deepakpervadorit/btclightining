@@ -9,9 +9,26 @@ class WithdrawalController extends Controller
 {
     public function index()
     {
-        $deposits = DB::table('withdrawals')
-    ->orderBy('created_at', 'asc')
-    ->get();
+        $userid = session('staff_id');
+        $role = session('staff_role');
+        if($role == "Merchant")
+        {
+            $users = DB::table('users')->where('created_by', $userid)->pluck('id');
+            $deposits = DB::table('withdrawals')->whereIn('userid', $users)->orderBy('created_at', 'asc')->get();
+        }
+        elseif($role == "Superadmin")
+        {
+            $deposits = DB::table('withdrawals')
+            ->orderBy('created_at', 'asc')
+            ->get();
+        }
+        elseif($role == "User")
+        {
+            $deposits = DB::table('withdrawals')->where('userid', $userid)->orderBy('created_at', 'asc')->get();
+        }
+    //     $deposits = DB::table('withdrawals')
+    // ->orderBy('created_at', 'asc')
+    // ->get();
         return view('admin.withdrawal',compact('deposits'));
     }
     public function destroy($id)

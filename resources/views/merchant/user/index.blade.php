@@ -18,6 +18,7 @@
                         <th>Created At</th>
                         <th>Verify</th>
                         <th>Deposits</th>
+                        <th>Withdrawals</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -43,6 +44,7 @@
 
                         </th>
                         <td><a href="{{ route('merchant.user.deposits', $member->id) }}" class="btn btn-success">Deposits</a></td>
+                        <td><a href="{{ route('merchant.user.withdrawals', $member->id) }}" class="btn btn-success">Withdrawals</a></td>
                             <td>
                                 <a href="{{ route('user.edit', $member->id) }}" class="btn btn-warning">Edit</a>
                                 <form action="{{ route('user.destroy', $member->id) }}" method="POST" style="display:inline;">

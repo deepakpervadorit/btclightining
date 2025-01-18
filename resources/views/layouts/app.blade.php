@@ -215,9 +215,13 @@ a.navbar-brand.text-white.mb-4 {
                 <i class="fas fa-wallet"></i> <span>Deposits</span></a></li>
 
             @endif
+            @if (session('staff_role') == 'User')
+                     <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">
+                        <i class="fas fa-money-bill"></i><span> Withdrawal</span></a></li>
+            @endif
             @if ($permissions->contains('Withdrawal'))
-                {{-- <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">
-                    <i class="fas fa-money-bill"></i><span> Withdrawal</span></a></li> --}}
+                <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">
+                        <i class="fas fa-money-bill"></i><span> Withdrawal</span></a></li>
             @endif
             @if ($permissions->contains('Staff'))
                 <li class="nav-item"><a class="nav-link" href="{{ route('staff.index') }}">
@@ -265,6 +269,16 @@ a.navbar-brand.text-white.mb-4 {
                         @endif
                     @endif
                 </ul>
+            </li>
+            @else
+             <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-users"></i><span> Users
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="{{ route('user.virtualcard') }}">Virtual Card</a></li>
+                            <li><a class="dropdown-item" href="{{ route('user.checkbook_usersbyid') }}">Checkbook Account</a></li>
+                    </ul>
             </li>
             @endif
             @if($staffId == '3')

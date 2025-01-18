@@ -53,7 +53,7 @@ Route::get('/', function () {
         ->name('show.withdrawal.form');
     Route::get('/payments', [PaymentController::class, 'payments'])
         ->name('show.payments');
-    Route::post('/webhook', 'PaymentController@handleWebhook')
+    Route::post('/webhook', [PaymentController::class, 'handleWebhook'])
         ->name('webhook');
         Route::post('/withdrawal/{id}/update-status', [PaymentController::class, 'updateStatus'])->name('withdrawal.updateStatus');
         Route::put('/withdrawal/reject/{id}', [PaymentController::class, 'rejectStatus'])->name('withdrawal.rejectStatus');
@@ -148,6 +148,7 @@ Route::middleware(['staffAuth'])->group(function () {
         Route::get('/user', [MerchantUserController::class, 'index'])->name('users.index');
         Route::get('/user/edit', [MerchantUserController::class, 'edit'])->name('user.edit');
         Route::get('/user/deposits/{id}', [MerchantUserController::class, 'deposits'])->name('user.deposits');
+        Route::get('/user/withdrawals/{id}', [MerchantUserController::class, 'withdrawals'])->name('user.withdrawals');
     });
 
 
@@ -170,6 +171,8 @@ Route::middleware(['staffAuth'])->group(function () {
 
 
     // Withdrawal
+    Route::post('/withdraw', [PaymentController::class, 'withdraw'])
+        ->name('user.withdraw');
     Route::get('/withdrawal', [WithdrawalController::class, 'index'])
         ->name('withdrawal')
         ->middleware('permission:Withdrawal');

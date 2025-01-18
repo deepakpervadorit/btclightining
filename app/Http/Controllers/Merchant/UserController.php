@@ -35,6 +35,14 @@ class UserController extends Controller
 
         return view('admin.deposit', compact('deposits'));
     }
+    
+    public function withdrawals($userid)
+    {
+        // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
+        $deposits = DB::table('withdrawals')->where('userid',$userid)->orderBy('created_at', 'desc')->get();
+
+        return view('admin.withdrawal', compact('deposits'));
+    }
 
     public function checkbook_users()
     {

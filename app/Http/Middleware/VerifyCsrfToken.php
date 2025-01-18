@@ -14,5 +14,7 @@ class VerifyCsrfToken extends Middleware
         '/thankyou',  // Exclude the /thankyou URI from CSRF protection
         '/generate-invoice-qr',
         '/deposit/invoice',
+        '/webhook',
+        '/notify-payment',
     ];
 }

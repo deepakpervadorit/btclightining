@@ -31,15 +31,16 @@ class UserController extends Controller
         $staffId = session('staff_id'); // Retrieves 'staff_id' from the session
         // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
         $user = DB::table('user_account')->orderBy('created_at', 'desc')->get();
-    
-        return view('admin.useraccount.index', compact('user'));
+    $usercount = DB::table('user_account')->where('userid',$staffId)->count();
+        return view('admin.useraccount.index', compact('user','usercount'));
     }
     public function checkbook_usersbyid()
     {
         $staffId = session('staff_id'); // Retrieves 'staff_id' from the session
         // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
         $user = DB::table('user_account')->where('userid',$staffId)->orderBy('created_at', 'desc')->get();
-        return view('admin.useraccount.index', compact('user'));
+        $usercount = DB::table('user_account')->where('userid',$staffId)->count();
+        return view('admin.useraccount.index', compact('user','usercount'));
     }
     
 
@@ -103,19 +104,19 @@ class UserController extends Controller
     $api_key = $createuser['key'];
     $api_secret = $createuser['secret'];
     $checkbook_user_id = $createuser['user_id'];
-    $cardNumber = null; $cvv = null; $expirationDate = null;
+    // $cardNumber = null; $cvv = null; $expirationDate = null;
     if($deposit_option == 'ZELLE'){
         $zelle = $this->checkbookService->createZelleAccount($email, $api_key, $api_secret);
-        // dd($zelle);
+        dd($zelle);
         $api_id = $zelle['id'];
     } else if($deposit_option == 'CARD'){
-        $l = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
+        $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
         // dd($cardAcc);
         $api_id = $cardAcc['id'];
          // Assign card details
-        $cardNumber = $cardNumberInput;
-        $cvv = $cvvInput;
-        $expirationDate = $expirationDateInput;
+        $cardNumber = $cardAcc['card_number'];
+        $cvv = null;
+        $expirationDate = null;
 
     } else if($deposit_option == 'VCC'){
         $vcc = $this->checkbookService->createVCCAccount($email, $api_key, $api_secret);

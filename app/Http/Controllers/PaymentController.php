@@ -19,6 +19,8 @@ use App\Services\CheckbookService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Deposit;
 use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
+use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Log;
 
 
 class PaymentController extends Controller
@@ -104,6 +106,52 @@ class PaymentController extends Controller
         }
         return response()->json(['status' => $response->json('payment_status')]);
     }
+    
+    public function handleWebhook(Request $request)
+    {
+        // Decode the JSON payload to an associative array
+        $data = $request->json()->all();
+
+        // Log the incoming data
+        Log::info('Paymenthook received', ['data' => $data]);
+
+        if (!isset($data['data']['object'])) {
+            Log::error('Invalid data format received in paymenthook', ['data' => $data]);
+            return response()->json(['status' => 'error', 'message' => 'Invalid data format'], 400);
+        }
+    
+        // Extract the relevant data from the received JSON
+        $eventData = $data['data']['object'];
+
+        // Log successful data extraction
+        Log::info('Data successfully extracted from paymenthook', ['eventData' => $eventData]);
+        
+        DB::table('deposit_transactions')->where('transaction_id',$eventData['id'])->update([
+            'tmpl_amount' => $eventData['target_amount'],
+            'tmpl_currency' => $eventData['target_currency'],
+            'transactionStatus' => $eventData['status'],
+            ]);
+        // Insert into the database using Eloquent
+        // $paymentEvent = PaymentEvent::create([
+        //     'object' => $data['object'],
+        //     'livemode' => $data['livemode'],
+        //     'event_type' => $data['event_type'],
+        //     'checkout_session_id' => $eventData['checkout_session_id'],
+        //     'payment_id' => $eventData['payment_id'],
+        //     'target_amount' => $eventData['target_amount'],
+        //     'amount_paid' => $eventData['amount_paid'],
+        //     'exchange_rate' => $eventData['exchange_rate'],
+        //     'expires_at' => $eventData['expires_at'],
+        //     'payment_status' => $eventData['payment_status'],
+        //     'target_amount_paid' => $eventData['target_amount_paid'],
+        //     'target_currency' => $eventData['target_currency'],
+        // ]);
+        
+        // Log database insert
+        // Log::info('Payment event created in the database', ['paymentEvent' => $paymentEvent]);
+    
+        return response()->json($eventData);
+    }
 
 
     public function updateDepositTransaction($transactionId) {
@@ -132,6 +180,49 @@ class PaymentController extends Controller
         $games = DB::table('games')->get();
         $uniqueId = Str::random(10);
         return view('withdrawal',compact('games','uniqueId'));
+    }
+    
+    public function withdraw(Request $request)
+    {
+
+        // Check if the user exists
+        $user = DB::table('users')->where('email', $request->email)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.'
+            ]);
+        }
+        // Proceed to insert the withdrawal request
+        try {
+            $depositId = DB::table('withdrawals')->insert([
+                'userid' => $user->id,
+                'status' => 'Unpaid',
+                'payment_method' => $request->payment_method,
+                'currency' => $request->currency,
+                'amount' => $request->amount,
+                'username' => $request->username,
+                'server' => $request->gameserver,
+                'game_username' => $request->gameusername,
+                'invoice' => $request->invoice,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Your payment request will be approved by admin.'
+            ]);
+    
+        } catch (\Exception $e) {
+            // Log the exception and return a response
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred. Please try again later.'
+            ]);
+        }
     }
 
     public function depositLink(Request $request)
@@ -355,23 +446,25 @@ public function squareProcessDeposit(Request $request, $id)
 
 public function makePayment(Request $request)
 {
-    $staffId = session('staff_id');
-    // Get the inputs from the request
-    $amount = $request->input('amount') + '0.9';
-    $recipientEmail = $request->input('email');
-    $description = $request->input('description');
-    $username = $request->input('username');
-    $name = $request->input('name');
-   $email = $recipientEmail;
-$address = $request->input('line_1');
-    // Check for deposit type and handle accordingly
-    if ($request->input('deposit_type') == 'mail_deposit') {
-        //  $account = '13287e3a58e34ea9bd75717d20ac237a'; // Wallet Address Hardcoded for now (sandbox)
+    try {
+        $staffId = session('staff_id');
+        // Get the inputs from the request
+        $amount = $request->input('amount') + '0.9';
+        $recipientEmail = $request->input('email');
+        $description = $request->input('description');
+        $username = $request->input('username');
+        $name = $request->input('name');
+        $email = $recipientEmail;
+        $address = $request->input('line_1');
+
+        // Check for deposit type and handle accordingly
+        if ($request->input('deposit_type') == 'mail_deposit') {
             $account = '5ce693db390a46f5a1c679c2e39ea696'; // Wallet Address Hardcoded for now (Production)
-    $depositOption = $request->input('deposit_option');
+            $depositOption = $request->input('deposit_option');
+
             // Call the Checkbook service to send the digital check for mail deposit
             $result = $this->checkbookService->sendDigitalCheck($username, $amount, $recipientEmail, $account, $description);
-            // Check if the response is successful and contains the necessary data
+
             if (isset($result['id'])) {
                 // Insert payment details into the database
                 $depositId = DB::table('withdrawals')->insertGetId([
@@ -382,139 +475,98 @@ $address = $request->input('line_1');
                     'username' => $username,
                     'server' => $request->input('server'),
                     'game_username' => $request->input('gameusername'),
-                    'created_at' => now(), // Set the created_at timestamp
-                    'updated_at' => now()  // Set the updated_at timestamp
+                    'created_at' => now(),
+                    'updated_at' => now()
                 ]);
 
-                // Return the redirect URL after successful payment
                 return response()->json([
-                    'redirect_url' => route('payment.result', ['deposit_id' => $depositId]), // pass deposit ID if needed
+                    'redirect_url' => route('payment.result', ['deposit_id' => $depositId]),
                 ]);
             } else {
-                // Handle errors or unsuccessful response from Checkbook.io API
                 return response()->json([
                     'error' => 'Error sending digital check. Please try again later.',
                     'details' => $result,
                 ], 500);
             }
-    } else {
-            $deposit_option = $request->input('deposit_option');
-        $useraccount = DB::table('user_account')->where('userid',$staffId)->where('payment_method',$deposit_option)->first();
-        $existingUser = DB::table('checkbook_users')->where('userid', $staffId)->first();
-    // Set the values as if $createuser was populated
-    $createuser = [
-        'key' => $existingUser->api_key,
-        'secret' => $existingUser->api_secret_key,
-        'user_id' => $existingUser->user_id,
-        'userid' => $existingUser->userid
-    ];
-     $api_key = $createuser['key'];
-    $api_secret = $createuser['secret'];
-    $checkbook_user_id = $createuser['user_id'];
-    $cardNumber = null; $cvv = null; $expirationDate = null; $api_id = null;
-          if($deposit_option == 'ZELLE_new'){
-              dd($email,$api_key,$api_secret);
-        $zelle = $this->checkbookService->createZelleAccount($email, $api_key, $api_secret);
-        $api_id = $zelle['id'];
-    } else if($deposit_option == 'CARD_new'){
-        $cardNumber = $request->input('card_number');
-        $cvv = $request->input('cvv');
-        $expirationDate = $request->input('expiration_date');
-        $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
-        $api_id = $cardAcc['id'];
-    } else if($deposit_option == 'VCC_new'){
-        $vcc = $this->checkbookService->createVCCAccount($email, $api_key, $api_secret);
-        $api_id = $vcc['id'];
-        $cardNumber = $vcc['card_number'] ?? null;
-        $cvv = $vcc['cvv'] ?? null;
-        $expirationDate = $vcc['expiration_date'] ?? null;
-    }
+        } else {
+            $depositOption = $request->input('deposit_option');
+            $userAccount = DB::table('user_account')->where('userid', $staffId)->where('payment_method', $depositOption)->first();
+            $existingUser = DB::table('checkbook_users')->where('userid', $staffId)->first();
 
-if(!isset($useraccount)){
-    // Insert user's payment account into the database
-   $useraccount =  DB::table('user_account')->insert([
-        'userid' => $staffId,
-        'payment_method' => $request->input('deposit_option'),
-        'api_id' => $api_id,
-        'user_id' => $checkbook_user_id,
-        'email' => $request->input('email'),
-        'line_1' => $request->input('line_1'),
-        'city' => $request->input('city'),
-        'state' => $request->input('state'),
-        'country' => $request->input('country'),
-        'zip_code' => $request->input('zip'),
-        'card_number' => $cardNumber ?? NULL, // Store card number if available,
-        'cvv' => $cvv ?? NULL, // Store CVV if available
-        'expiration_date' => $expirationDate ?? NULL, // Store expiration date if available
-        'created_at' => now(),
-    ]);
-}
-    if($useraccount == ''){
-        $useraccount = DB::table('useraccount')->where('user_id',$staffId)->orderBy('created_at', 'id')->first();
-         $api_id = $request->input('api_id'); // Hardcoded for now
-         $api_key = $request->input('api_key');
-         $api_secret = $request->input('api_secret');
-         $user_id = $request->input('user_id');
-         $depositOption = $request->input('deposit_option');
-         $user = $this->checkbookService->getUserByUserId($username);
-            // Check if the user creation was successful
-            if (isset($user['error'])) {
-                return response()->json(['error' => 'Unable to create or retrieve user', 'details' => $user]);
+            if (!$existingUser) {
+                throw new \Exception('User account not found.');
             }
-            // Check if the response is successful and contains the necessary data
-            if (isset($user)) {
-                // Insert payment details into the database
-                $depositId = DB::table('withdrawals')->insertGetId([
+
+            $createuser = [
+                'key' => $existingUser->api_key,
+                'secret' => $existingUser->api_secret_key,
+                'user_id' => $existingUser->user_id,
+                'userid' => $existingUser->userid
+            ];
+
+            $api_key = $createuser['key'];
+            $api_secret = $createuser['secret'];
+            $checkbook_user_id = $createuser['user_id'];
+            $api_id = null;
+
+            if ($depositOption == 'ZELLE_new') {
+                $zelle = $this->checkbookService->createZelleAccount($email, $api_key, $api_secret);
+                $api_id = $zelle['id'];
+            } elseif ($depositOption == 'CARD_new') {
+                $cardNumber = $request->input('card_number');
+                $cvv = $request->input('cvv');
+                $expirationDate = $request->input('expiration_date');
+                $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
+                $api_id = $cardAcc['id'];
+            } elseif ($depositOption == 'VCC_new') {
+                $vcc = $this->checkbookService->createVCCAccount($email, $api_key, $api_secret);
+                $api_id = $vcc['id'];
+            }
+
+            if (!$userAccount) {
+                DB::table('user_account')->insert([
                     'userid' => $staffId,
-                    'status' => 'Unpaid',
-                    'payment_method' => 'Individual Deposit',
-                    'amount' => $amount,
-                    'username' => $username,
-                    'server' => $request->input('server'),
-                    'game_username' => $request->input('gameusername'),
-                    'checkbook_type' => $depositOption,
+                    'payment_method' => $depositOption,
+                    'api_id' => $api_id,
+                    'user_id' => $checkbook_user_id,
+                    'email' => $request->input('email'),
+                    'line_1' => $request->input('line_1'),
+                    'city' => $request->input('city'),
+                    'state' => $request->input('state'),
+                    'country' => $request->input('country'),
+                    'zip_code' => $request->input('zip'),
+                    'card_number' => $cardNumber ?? null,
+                    'cvv' => $cvv ?? null,
+                    'expiration_date' => $expirationDate ?? null,
                     'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-                // Return the redirect URL after successful payment
-                return response()->json([
-                    'redirect_url' => route('payment.result', ['deposit_id' => $depositId]), // pass deposit ID if needed
                 ]);
             }
-            } else {
-         $api_id = $request->input('api_id'); // Hardcoded for now
-         $api_key = $request->input('api_key');
-         $api_secret = $request->input('api_secret');
-         $user_id = $request->input('user_id');
-         $depositOption = $request->input('deposit_option');
-         $user = $this->checkbookService->getUserByUserId($username);
-            // Check if the user creation was successful
-            if (isset($user['error'])) {
-                return response()->json(['error' => 'Unable to create or retrieve user', 'details' => $user]);
-            }
-            // Check if the response is successful and contains the necessary data
-            if (isset($user)) {
-                // Insert payment details into the database
-                $depositId = DB::table('withdrawals')->insertGetId([
-                    'userid' => $staffId,
-                    'status' => 'Unpaid',
-                    'payment_method' => 'Individual Deposit',
-                    'amount' => $amount,
-                    'username' => $username,
-                    'server' => $request->input('server'),
-                    'game_username' => $request->input('gameusername'),
-                    'checkbook_type' => $depositOption,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-                // Return the redirect URL after successful payment
-                return response()->json([
-                    'redirect_url' => route('payment.result', ['deposit_id' => $depositId]), // pass deposit ID if needed
-                ]);
-            }
-            }
+
+            $depositId = DB::table('withdrawals')->insertGetId([
+                'userid' => $staffId,
+                'status' => 'Unpaid',
+                'payment_method' => 'Individual Deposit',
+                'amount' => $amount,
+                'username' => $username,
+                'server' => $request->input('server'),
+                'game_username' => $request->input('gameusername'),
+                'checkbook_type' => $depositOption,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            return response()->json([
+                'redirect_url' => route('payment.result', ['deposit_id' => $depositId]),
+            ]);
+        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'An error occurred while processing the payment.',
+            'details' => $e->getMessage(),
+        ], 500);
     }
 }
+
 public function updateStatus(Request $request, $id)
 {
     $staffId =$id;
@@ -523,27 +575,165 @@ public function updateStatus(Request $request, $id)
     $userid = $userwithdrawal->userid;
     $name = $userwithdrawal->username;
     $amount = $userwithdrawal->amount;
-    $depositOption = $userwithdrawal->checkbook_type;
-    $useraccount = DB::table('user_account')->where('payment_method',$depositOption)->where('userid',$userid)->first();
-    $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
-    $recipientEmail = $useraccount->email;
     $description = $userwithdrawal->username;
-    $api_id = $useraccount->api_id;
-    $api_key = $checkbookuser->api_key;
-    $api_secret = $checkbookuser->api_secret_key;
-    $user_id = $useraccount->user_id;
-    $result = $this->checkbookService->individualDeposit($name, $amount, $recipientEmail, $description, $depositOption,$api_id,$api_key,$api_secret,$user_id);
-    // Update the status to 'Paid'
-    DB::table('withdrawals')
-    ->where('userid', $userid)
-    ->where('checkbook_type', $depositOption)
-    ->update([
-        'status' => 'Paid',
-    ]);
+    if($userwithdrawal->payment_method == "Try Speed")
+    {
+        $speedSecretKey = env('SPEED_SECRET_KEY');
+
+        // Base64 encode the secret key
+        $encodedKey = base64_encode($speedSecretKey);
+
+        // Try Speed API URL
+        $apiUrl = "https://api.tryspeed.com/send";  // Replace with the actual Try Speed API endpoint
+
+        // Create a new Guzzle client instance
+        $client = new Client();
+
+            // Make the POST request using Guzzle
+            $response = $client->post($apiUrl, [
+                'headers' => [
+                    'Authorization' => 'Basic ' . $encodedKey,  // Add the Authorization header as Basic <encodedKey>
+                    'Content-Type' => 'application/json',
+                ],
+                'json' => [
+                    "amount" => $amount,
+                    "currency" => "USD",
+                    "withdraw_method" => "lightning",
+                    "target_currency" => "SATS",
+                    "withdraw_request" => "".$userwithdrawal->invoice."",
+                ]
+            ]);
+
+            // Get the response body
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+            // Check if the response indicates success (e.g., based on a "status" field)
+            if (isset($responseBody['status']) && $responseBody['status'] == 'unpaid') {
+                // If the payment was successfully processed, update the withdrawal status
+                DB::table('withdrawals')
+                    ->where('id', $id)
+                    ->update([
+                        'status' => 'Paid',
+                    ]);
+                return redirect()->back()->with('success', 'Payment Success');
+                // Log success or handle response as needed
+            } else {
+                // Handle failure or log error
+                return redirect()->back()->with('error', 'Payment request failed with Try Speed.');
+            }
+    }
+    elseif($userwithdrawal->payment_method == "Fortune Finex")
+    {
+            $withdraw = DB::table('withdrawals')->where('id', $id)->first();
+            $authToken = $this->getAuthToken();
+            // Generate merchant transaction ID and checksum
+            $merchantTransactionId = bin2hex(random_bytes(6));
+
+            $checksum = $this->generateChecksum($withdraw, $merchantTransactionId);
+    
+            // Determine terminal ID based on currency
+            $terminal = $this->getTerminalId($withdraw->currency);
+    
+            // Prepare request data
+            $data = [
+                'bankAccount.transferType' => 'cards',
+                'authentication.checksum' => $checksum,
+                'currency' => $withdraw->currency,
+                'authentication.memberId' => env('MEMBER_ID'),
+                'authentication.terminalId' => $terminal,
+                'merchantTransactionId' => $merchantTransactionId,
+                'amount' => $withdraw->amount,
+                'cardNumber' => 4242424242424242,
+                'cardExpMonth' => 12,
+                'cardExpYear' => 2026,
+                'cardHolderName' => 'test',
+                'notificationUrl' => 'https://luckypay.app/payout-notify-payment',
+            ];
+    
+            // Make the payout request
+            $response = $this->makePayoutRequest($data, $authToken);
+            
+            // Check if the response indicates success (e.g., based on a "status" field)
+            if (isset($response['status']) && $response['status'] == 'P') {
+                // If the payment was successfully processed, update the withdrawal status
+                DB::table('withdrawals')
+                    ->where('id', $id)
+                    ->update([
+                        'status' => 'Paid',
+                    ]);
+                return redirect()->back()->with('success', 'Payment Success');
+                // Log success or handle response as needed
+            } else {
+                // Handle failure or log error
+                return redirect()->back()->with('error', 'Payment request failed with Fortune Finex.');
+            }
+    }
+    else
+    {
+        $depositOption = $userwithdrawal->checkbook_type;
+        $useraccount = DB::table('user_account')->where('payment_method',$depositOption)->where('userid',$userid)->first();
+        $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
+        $recipientEmail = $useraccount->email;
+        
+        $api_id = $useraccount->api_id;
+        $api_key = $checkbookuser->api_key;
+        $api_secret = $checkbookuser->api_secret_key;
+        $user_id = $useraccount->user_id;
+        $result = $this->checkbookService->individualDeposit($name, $amount, $recipientEmail, $description, $depositOption,$api_id,$api_key,$api_secret,$user_id);
+        // Update the status to 'Paid'
+        DB::table('withdrawals')
+        ->where('userid', $userid)
+        ->where('checkbook_type', $depositOption)
+        ->update([
+            'status' => 'Paid',
+        ]);
+    }
 
     // Redirect back with a success message
     return redirect()->back()->with('success', 'Status updated to Paid.');
 }
+    private function getAuthToken()
+    {
+        $response = Http::asForm()->post(env('FORTUNEFINEX_BASE_URL').'transactionServices/REST/v1/authToken', [
+            'authentication.partnerId' => env('PARTNER_ID'),
+            'merchant.username' => 'Testfortunefinex',
+            'authentication.sKey' => env('SECRET_KEY'),
+        ]);
+
+        if ($response->failed()) {
+            return response()->json(['error' => 'Failed to get AuthToken'], 500);
+        }
+
+        return $response->json()['AuthToken'];
+    }
+
+    private function generateChecksum($withdraw, $merchantTransactionId)
+    {
+        $values = implode('|', [
+            env('MEMBER_ID'),
+            $merchantTransactionId,
+            $withdraw->amount,
+            env('SECRET_KEY')
+        ]);
+
+        return md5($values);
+    }
+
+    private function getTerminalId($currency)
+    {
+        return $currency == 'EUR' ? '7609' : ($currency == 'USD' ? '7883' : null);
+    }
+    private function makePayoutRequest($data, $authToken)
+    {
+        $response = Http::withHeaders([
+            'AuthToken' => $authToken
+        ])->asForm()->post(env('FORTUNEFINEX_BASE_URL').'transactionServices/REST/v1/payout', $data);
+
+        if ($response->failed()) {
+            return response()->json(['error' => 'Payout request failed'], 500);
+        }
+
+        return $response->json();
+    }
 public function rejectStatus($id)
 {
     $staffId = $id;
@@ -555,14 +745,15 @@ public function rejectStatus($id)
     $depositOption = $userwithdrawal->checkbook_type;
     $useraccount = DB::table('user_account')->where('payment_method',$depositOption)->where('userid',$userid)->first();
     $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
-    $recipientEmail = $useraccount->email;
-    $description = $userwithdrawal->username;
-    $api_id = $useraccount->api_id;
-    $api_key = $checkbookuser->api_key;
-    $api_secret = $checkbookuser->api_secret_key;
-    $user_id = $useraccount->user_id;
+    // $recipientEmail = $useraccount->email;
+    // $description = $userwithdrawal->username;
+    // $api_id = $useraccount->api_id;
+    // $api_key = $checkbookuser->api_key;
+    // $api_secret = $checkbookuser->api_secret_key;
+    // $user_id = $useraccount->user_id;
     // Update the status to 'Paid'
     DB::table('withdrawals')
+    ->where('id', $id)
     ->where('userid', $userid)
     ->where('checkbook_type', $depositOption)
     ->update([
@@ -570,7 +761,7 @@ public function rejectStatus($id)
     ]);
 
     // Redirect back with a success message
-    return redirect()->back()->with('success', 'Status updated to Paid.');
+    return redirect()->back()->with('success', 'Status updated to Rejected.');
 }
 
 

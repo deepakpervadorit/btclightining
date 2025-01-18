@@ -5,10 +5,6 @@
 
 <div class="container mt-4">
     <h1 class="mb-4">Checkbook Accounts</h1>
-    @php
-            $staffId = session('staff_id');
-    $usercount = DB::table('user_account')->where('userid',$staffId)->count();
-    @endphp
     @if($usercount == '3')
     <a href="{{ route('user.create') }}" class="btn btn-primary mb-3 disabled" >Create New User Member</a>
     @else

@@ -1,3 +1,6 @@
+@php
+use Illuminate\Support\Facades\DB;
+@endphp
 @extends('layouts.userapp')
 
 @section('content')
@@ -71,25 +74,14 @@ footer {
                         @endphp
                         <div class="mb-3">
                                 <label class="form-label mt-3">Email/Phone</label>
-                                <input type="text" name="email" class="form-control mt-1" value="{{$staffEmail}}" readonly>
+                                <input type="text" name="email" class="form-control mt-1" value="{{$staffEmail}}" id="email" readonly>
                                 </div>
                                 <div class="mb-3">
                                     <label for="username" class="form-label">Username</label>
                                     <input type="text" class="form-control" id="gameusername" name="gameusername" value="">
                                     <input type="hidden" class="form-control" id="username" name="username" value="{{$staffName}}">
                                 </div>
-                            
-                    
-                                <div class="mb-3">
-                                    <label for="amount" class="form-label">Amount</label>
-                                    <input type="number" class="form-control" id="amount" name="amount" min="10" required>
-                                </div>
-                                <div id="user-container" style="margin-bottom:15px;">
-    <!--<div class="mb-3">-->
-    <!--    <label class="form-label mt-3">Select User</label>-->
-    <!--    <input name="username" id="username-select" class="form-control mt-1" value="{{$staffEmail}}" readonly>-->
-    <!--</div>-->
-    <div class="mb-3">
+                            <div class="mb-3">
         <label class="form-label mt-3">Withdrawal Option</label>
             @php
             $staffId = session('staff_id');
@@ -113,7 +105,10 @@ footer {
             <option value="CARD_new">Push To Card</option>
             <option value="VCC_new">Virtual Card</option>
             @endif
+            <option value="try_speed">Try Speed</option>
+            <option value="fortunefinex">FortuneFinex</option>
             </select>
+            
             
     <!-- Card Modal (Address and Card Details) -->
     <div id="cardModal" style="display: none;">
@@ -163,6 +158,21 @@ footer {
         <input type="hidden" name="api_secret" id="api-secret-input">
         <input type="hidden" name="user_id" id="user-id-input">
     </div>
+                    
+                                <div class="mb-3">
+                                    <label for="amount" class="form-label">Amount <span id="EUR" style="display:none;">(EUR)</span></label>
+                                    <input type="text" class="form-control" id="amount" name="amount" required>
+                                </div>
+                                <div id="user-container" style="margin-bottom:15px;">
+    <!--<div class="mb-3">-->
+    <!--    <label class="form-label mt-3">Select User</label>-->
+    <!--    <input name="username" id="username-select" class="form-control mt-1" value="{{$staffEmail}}" readonly>-->
+    <!--</div>-->
+    
+    <div class="mb-3" id="try_speed_invoice" style="display:none;">
+                <label for="invoice" class="form-label">Invoice request</label>
+                <input type="text" class="form-control" id="invoice" name="invoice">
+            </div>
 </div>
 <input type="hidden" name="paymentMethod" value="Checkbook">
                                 <div class="d-grid gap-2 mt-3">
@@ -241,9 +251,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Listen for changes in the deposit option dropdown
     depositOption.addEventListener('change', function () {
-        if (depositOption.value === 'CARD_new') {
+        if(depositOption.value == "try_speed")
+        {
+            $("#try_speed_invoice").css('display','block');
+            $("#EUR").css('display','none');
+            cardModal.style.display = 'none';
+        }
+        else if(depositOption.value == "fortunefinex")
+        {
+            $("#try_speed_invoice").css('display','none');
+            $("#EUR").css('display','inline-block');
+            cardModal.style.display = 'none';
+        }
+        else if (depositOption.value === 'CARD_new') {
+            $("#try_speed_invoice").css('display','none');
+            $("#EUR").css('display','none');
             cardModal.style.display = 'block';  // Show the card modal if 'Push To Card' is selected
         } else {
+            $("#try_speed_invoice").css('display','none');
+            $("#EUR").css('display','none');
             cardModal.style.display = 'none';  // Hide the card modal if other option is selected
         }
     });
@@ -433,7 +459,84 @@ cashAppPay.addEventListener('ontokenization', (event) => {
     $(document).ready(function() {
     $('#checkbook-form').on('submit', function(event) {
     event.preventDefault(); // Prevent the form from submitting normally
+    const depositOption = document.getElementById('username-select').value;
+    if(depositOption == "try_speed")
+    {
+        var invoice = $("#invoice").val();
+        var amount = $("#amount").val();
+        var email = $("#email").val();
+        var username = $("#username").val();
+        var server = $("#server").val();
+        var gameusername = $("#gameusername").val();
+        var settings = {
+            "url": "{{route('user.withdraw')}}",
+            "method": "POST",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "data": JSON.stringify({
+                "currency": "USD",
+                "amount": amount,
+                "payment_method":"Try Speed",
+                "invoice":invoice,
+                "email":email,
+                "username":username,
+                "gameserver":server,
+                "gameusername":gameusername,
+                "_token":"{{csrf_token()}}"
+            }),
+        };
+    $.ajax(settings).done(function(response) {
+        console.log(response);
+        toastr.success('Your withdraw request will be approved by admin');
+        window.location.href="{{url('/dashboard')}}";
+    }).fail(function(xhr, status, error) {
+        console.error("Request failed with status: " + status + ", error: " + error);
+        console.error("Response: " + xhr.responseText);
+    });
+        
+        
+    }
+    else if(depositOption == "fortunefinex")
+    {
 
+        var amount = $("#amount").val();
+        var email = $("#email").val();
+        var username = $("#username").val();
+        var server = $("#server").val();
+        var gameusername = $("#gameusername").val();
+        var settings = {
+            "url": "{{route('user.withdraw')}}",
+            "method": "POST",
+            "timeout": 0,
+            "headers": {
+                "Content-Type": "application/json"
+            },
+            "data": JSON.stringify({
+                "currency": "EUR",
+                "amount": amount,
+                "payment_method":"Fortune Finex",
+                "email":email,
+                "username":username,
+                "gameserver":server,
+                "gameusername":gameusername,
+                "_token":"{{csrf_token()}}"
+            }),
+        };
+    $.ajax(settings).done(function(response) {
+        console.log(response);
+        toastr.success('Your withdraw request will be approved by admin');
+        window.location.href="{{url('/dashboard')}}";
+    }).fail(function(xhr, status, error) {
+        console.error("Request failed with status: " + status + ", error: " + error);
+        console.error("Response: " + xhr.responseText);
+    });
+        
+        
+    }
+    else
+    {
     // Serialize the form data
     var formData = $(this).serialize();
 
@@ -466,6 +569,7 @@ cashAppPay.addEventListener('ontokenization', (event) => {
             toastr.error('There was an issue with the request. Please try again later.', 'Payment Failed');
         }
     });
+    }
 });
 
 });

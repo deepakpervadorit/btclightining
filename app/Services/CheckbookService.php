@@ -146,7 +146,6 @@ class CheckbookService
             ])->post($url, [
                 'username' => $email
             ]);
-
            // Return response as an array or as needed
            return $response->json();
         
@@ -169,6 +168,7 @@ class CheckbookService
             'expiration_date' => $expirationDate
         ]);
         $cardAcc = $response->json();
+
         $api_id = $cardAcc['id'];
         $this->updateCurrentCardAccount($api_id, $api_key, $api_secret);
 

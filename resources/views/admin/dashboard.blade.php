@@ -82,7 +82,7 @@
                             <i class="fas fa-wallet"></i>
                         </div>
                         <div class="widget-two__content">
-                            <h3 class="text-white">${{$withdrawal}}</h3>
+                            <h3 class="text-white">${{$usdwithdrawal}}</h3>
                             <p class="text-white">Withdrawals</p>
                         </div>
                     </div>
@@ -99,6 +99,31 @@
                         </div>
                     </div>
                 </div>
+                
+                <div class="col-xxl-3 col-sm-6">
+                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--1">
+                        <div class="widget-two__icon b-radius--5 bg--primary">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="widget-two__content">
+                            <h3 class="text-white">€{{$eurwithdrawal}}</h3>
+                            <p class="text-white">Withdrawals</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xxl-3 col-sm-6">
+                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--17">
+                        <div class="widget-two__icon b-radius--5 bg--primary">
+                            <i class="las la-exchange-alt"></i>
+                        </div>
+                        <div class="widget-two__content">
+                            <h3 class="text-white">{{$transactions}}</h3>
+                            <p class="text-white">Transactions</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="col-xxl-3 col-sm-6">
                     <div class="widget-two style--two box--shadow2 b-radius--5 bg--19">
                         <div class="widget-two__icon b-radius--5 bg--primary">
@@ -112,17 +137,7 @@
                 </div>
                 <!-- dashboard-w1 end -->
 
-                <div class="col-xxl-3 col-sm-6">
-                    <div class="widget-two style--two box--shadow2 b-radius--5 bg--17">
-                        <div class="widget-two__icon b-radius--5 bg--primary">
-                            <i class="las la-exchange-alt"></i>
-                        </div>
-                        <div class="widget-two__content">
-                            <h3 class="text-white">{{$transactions}}</h3>
-                            <p class="text-white">Transactions</p>
-                        </div>
-                    </div>
-                </div>
+                
                 <!-- dashboard-w1 end -->
 
 
@@ -214,100 +229,7 @@
     </div>
 </div>
 
-<!--<div class="d-md-flex">-->
-<!--    <div class="mx-auto bg-white w-100 mt-4">-->
-<!--        <div>-->
-<!--            <div class="pb-4 px-4 py-md-4">-->
-<!--                <div>-->
-<!--                    <dl class="mt-5 row row-cols-1 g-3">-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #90CDF4, #3182CE); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Deposit Total</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">${{ number_format($totalDeposit, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #90CDF4, #3182CE); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Deposit Avg</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">${{ number_format($avgDeposit, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #90CDF4, #3182CE); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Deposit Count Total</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">{{ number_format($countDeposit, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #90CDF4, #3182CE); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Top Depositing Player</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white"></dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </dl>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--    <div class="mx-auto bg-white w-100 mt-4">-->
-<!--        <div>-->
-<!--            <div class="pb-4 px-4 py-md-4">-->
-<!--                <div>-->
-<!--                    <dl class="mt-5 row row-cols-1 g-3">-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #F6AD55, #DD6B20); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Withdrawal Total</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">${{ number_format($totalWithdraw, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #F6AD55, #DD6B20); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Withdrawal Avg</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">${{ number_format($avgWithdraw, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #F6AD55, #DD6B20); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Total Withdrawals</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">{{ number_format($countWithdraw, 2) }}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="overflow-hidden rounded bg-white shadow" style="background: linear-gradient(to left, #F6AD55, #DD6B20); padding: 1.5rem;">-->
-<!--                            <dt class="text-white text-truncate text-sm fw-medium">Top Withdrawing Player</dt>-->
-<!--                            <div class="d-flex">-->
-<!--                                <div class="d-flex align-items-center">-->
-<!--                                    <dd class="mt-1 display-6 fw-semibold text-white">{{$topWithdraw->username}}</dd>-->
-<!--                                </div>-->
-<!--                                <div class="d-flex align-items-center ms-auto"></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </dl>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>

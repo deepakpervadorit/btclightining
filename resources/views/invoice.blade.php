@@ -49,6 +49,7 @@
 
 </center>
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script type="text/javascript">
     function copyToClipboard(elementId) {
       const copyText = document.getElementById(elementId);
@@ -62,15 +63,21 @@
           alert("Link copied to clipboard!");
       }
   }
-  setInterval(() => {
+  const intervalId = setInterval(() => {
     $.ajax({
         url: '/check-payment-status',
         method: 'GET',
         data: { invoice_id: '{{$invoice->invoice_id}}' },
         success: function(response) {
             if (response.status === 'completed') {
-                alert('Payment completed!');
-                window.location.href = '/update_transaction/{{$invoice->invoice_id}}'; // Redirect to thank-you page
+                clearInterval(intervalId);
+                Swal.fire({
+                    title: "Payment completed",
+                    text: "Your payment has been completed",
+                    icon: "success"
+                }).then(() => {
+                    window.location.href = '/update_transaction/{{$invoice->invoice_id}}';
+                });
             }
         },
     });

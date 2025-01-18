@@ -9,10 +9,16 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth; // Add this line
 use App\Models\User;
+use App\Services\CheckbookService;
 use Illuminate\Support\Facades\Crypt;
 
 class LoginController extends Controller
 {
+    public function __construct(CheckbookService $checkbookService)
+    {
+        $this->checkbookService = $checkbookService;
+    }
+    
    public function showLoginForm()
     {
         return view('login');
@@ -151,6 +157,14 @@ public function login(Request $request)
             'password' => 'required|confirmed|min:8', // Password confirmation and minimum length
             'merchantid' => 'required',
         ]);
+        
+        $createuser = $this->checkbookService->createUser($validated['name']);
+        
+        if (isset($createuser['error'])) {
+            // Abort user creation if username is already in use
+            session()->flash('error', 'Username is already in use. Please choose a different name.');
+            abort(400, 'Username already in use.');
+        }
 
         // Create the user with the validated data and hashed password
         $user = User::create([
@@ -160,6 +174,25 @@ public function login(Request $request)
             'role' => 'User',
             'created_by' => $validated['merchantid'],
         ]);
+        
+        DB::table('checkbook_users')->insert([
+            'userid' => $user->id,
+            'user_id' => $createuser['user_id'],
+            'checkbook_id' => $createuser['id'],
+            'api_key' => $createuser['key'],
+            'api_secret_key' => $createuser['secret'],
+            'created_at' => now(),
+        ]);
+        
+        // DB::table('checkbook_users')->insert([
+        //     'userid' => $user->id,
+        //     'user_id' => "techdeeppaksingh",
+        //     'checkbook_id' => "d1d198496b5b40829cdb2d9072460a4b",
+        //     'api_key' => "9ccbe3da99f64b6ebd12d99de2b7737b",
+        //     'api_secret_key' => "BDaoPUkAZQbeFXhcJA85Da84XmrUB8",
+        //     'created_at' => now(),
+        // ]);
+        
         DB::table('role_staff')->insert([
                 'staff_id' => $user->id,
                 'role_id' => '5',

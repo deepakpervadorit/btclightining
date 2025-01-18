@@ -101,10 +101,10 @@ footer {
                             <input type="hidden" name="totype" value="{{ env('TOTYPE') }}" />
                             <input type="hidden" name="merchantTransactionId" value="{{ $merchantTransactionId }}" />
                             <input type="hidden" name="orderDescription" value="Test Transaction" />
-                            <input type="hidden" name="currency" value="EUR" />
+                            <input type="hidden" name="currency" value="USD" />
                             <input type="hidden" name="merchantRedirectUrl" value="{{ env('MERCHANT_REDIRECT_URL') }}" />
                             <input type="hidden" name="notificationUrl" value="{{ env('NOTIFICATION_URL') }}" />
-                            {{-- <input type="hidden" name="terminalid" value="{{ env('TERMINAL_ID') }}" />
+                            {{--<input type="hidden" name="terminalid" value="{{ env('TERMINAL_ID') }}" />
                             <input type="hidden" name="paymentMode" value="{{ env('PAYMENT_MODE') }}" />
                             <input type="hidden" name="paymentBrand" value="{{ env('PAYMENT_BRAND') }}" /> --}}
                             <div class="mb-3">
@@ -421,6 +421,8 @@ $("#tryspeedbtn").on('click',function(e){
         if(this.value === 'tryspeed') {
             $('#tryspeedbtn').css('display', 'block');
             $('#tryspeedamount').css('display', 'block');
+            visaForm.style.display = 'none';
+            mastercardForm.style.display = 'none';
 
         }
 
@@ -428,10 +430,16 @@ $("#tryspeedbtn").on('click',function(e){
         if (this.value === 'visa') {
             console.log('visa');
         visaForm.style.display = 'block';
+        mastercardForm.style.display = 'none';
+        $('#tryspeedbtn').css('display', 'none');
+        $('#tryspeedamount').css('display', 'none');
 
         } else if (this.value === 'mastercard') {
         console.log('mc');
         mastercardForm.style.display = 'block';
+        visaForm.style.display = 'none';
+        $('#tryspeedbtn').css('display', 'none');
+        $('#tryspeedamount').css('display', 'none');
 
         }
     });
