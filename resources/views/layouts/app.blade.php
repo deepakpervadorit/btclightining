@@ -244,6 +244,8 @@ a.navbar-brand.text-white.mb-4 {
                         <li><a class="dropdown-item" href="{{ route('admin.stripe.keys') }}">Stripe</a></li>
                         <li><a class="dropdown-item" href="{{ route('admin.square.keys') }}">Square</a></li>
                         <li><a class="dropdown-item" href="{{ route('admin.checkbook.keys') }}">Checkbook</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.fortunefinex.keys') }}">Fortune Finex</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.tryspeed.keys') }}">Try Speed</a></li>
                     </ul>
                 </li>
             @endif

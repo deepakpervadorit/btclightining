@@ -18,11 +18,13 @@ use App\Http\Controllers\SquareController;
 use App\Http\Controllers\CheckbookController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\CheckController;
+use App\Http\Controllers\FortuneFinexController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\PermissionsController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotifyPaymentController;
 use App\Http\Controllers\thankyouController;
+use App\Http\Controllers\TrySpeedController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 
@@ -138,7 +140,12 @@ Route::name('admin.')->prefix('admin')->group(function () {
     Route::post('/merchant/add', [StoreController::class, 'store'])->name('merchant.add');
     Route::get('/merchant/list', [StoreController::class, 'index'])->name('merchant.list');
     Route::get('/merchant/deposits/{id}', [StoreController::class, 'deposits'])->name('merchant.deposits');
+    Route::get('/merchant/withdrawals/{id}', [StoreController::class, 'withdrawals'])->name('merchant.withdrawals');
     Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
+    Route::get('/fortunefinex-settings', [FortuneFinexController::class, 'index'])->name('fortunefinex.keys');
+    Route::post('/fortunefinex-keys/update', [FortuneFinexController::class, 'updateKeys'])->name('fortunefinex.keys.update');
+    Route::get('/tryspeed-settings', [TrySpeedController::class, 'index'])->name('tryspeed.keys');
+    Route::post('/tryspeed-keys/update', [TrySpeedController::class, 'updateKeys'])->name('tryspeed.keys.update');
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['staffAuth'])->group(function () {

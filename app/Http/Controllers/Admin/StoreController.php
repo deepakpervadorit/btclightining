@@ -10,6 +10,8 @@ use App\Services\CheckbookService;
 use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use DateTime;
 use DateTimeZone;
+use App\Mail\WelcomeMailMerchant;
+use Illuminate\Support\Facades\Mail;
 
 class StoreController extends Controller
 {
@@ -39,6 +41,12 @@ class StoreController extends Controller
         $deposits = DB::table('deposits')->whereIn('user_id',$userids)->orderBy('created_at', 'desc')->get();
 
         return view('admin.deposit', compact('deposits'));
+    }
+
+    public function withdrawals($userid){
+        $userids = DB::table('users')->where('created_by',$userid)->pluck('id')->toArray();
+        $deposits = DB::table('withdrawals')->whereIn('userid',$userids)->orderBy('created_at', 'desc')->get();
+        return view('admin.withdrawal', compact('deposits'));
     }
 
     public function checkbook_users()
@@ -83,6 +91,8 @@ class StoreController extends Controller
         'role_id' => 9,
     ]);
 
+    $staff = DB::table('staff')->where('id',$id)->first();
+
     DB::table('role_staff')->insert([
         'staff_id' => $id,
         'role_id' => 9,
@@ -95,7 +105,7 @@ class StoreController extends Controller
     ]);
 
 
-
+    Mail::to($staff->email)->send(new WelcomeMailMerchant($staff,$request->input('password')));
     // Redirect with success message
     return redirect()->route('admin.merchant.list')->with('success',' Account created successfully');
 }

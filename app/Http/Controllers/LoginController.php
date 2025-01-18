@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Auth; // Add this line
 use App\Models\User;
 use App\Services\CheckbookService;
 use Illuminate\Support\Facades\Crypt;
+use App\Mail\WelcomeMail;
+use Illuminate\Support\Facades\Mail;
 
 class LoginController extends Controller
 {
@@ -18,7 +20,7 @@ class LoginController extends Controller
     {
         $this->checkbookService = $checkbookService;
     }
-    
+
    public function showLoginForm()
     {
         return view('login');
@@ -157,14 +159,14 @@ public function login(Request $request)
             'password' => 'required|confirmed|min:8', // Password confirmation and minimum length
             'merchantid' => 'required',
         ]);
-        
-        $createuser = $this->checkbookService->createUser($validated['name']);
-        
-        if (isset($createuser['error'])) {
-            // Abort user creation if username is already in use
-            session()->flash('error', 'Username is already in use. Please choose a different name.');
-            abort(400, 'Username already in use.');
-        }
+
+        // $createuser = $this->checkbookService->createUser($validated['name']);
+
+        // if (isset($createuser['error'])) {
+        //     // Abort user creation if username is already in use
+        //     session()->flash('error', 'Username is already in use. Please choose a different name.');
+        //     abort(400, 'Username already in use.');
+        // }
 
         // Create the user with the validated data and hashed password
         $user = User::create([
@@ -174,16 +176,16 @@ public function login(Request $request)
             'role' => 'User',
             'created_by' => $validated['merchantid'],
         ]);
-        
-        DB::table('checkbook_users')->insert([
-            'userid' => $user->id,
-            'user_id' => $createuser['user_id'],
-            'checkbook_id' => $createuser['id'],
-            'api_key' => $createuser['key'],
-            'api_secret_key' => $createuser['secret'],
-            'created_at' => now(),
-        ]);
-        
+
+        // DB::table('checkbook_users')->insert([
+        //     'userid' => $user->id,
+        //     'user_id' => $createuser['user_id'],
+        //     'checkbook_id' => $createuser['id'],
+        //     'api_key' => $createuser['key'],
+        //     'api_secret_key' => $createuser['secret'],
+        //     'created_at' => now(),
+        // ]);
+
         // DB::table('checkbook_users')->insert([
         //     'userid' => $user->id,
         //     'user_id' => "techdeeppaksingh",
@@ -192,13 +194,15 @@ public function login(Request $request)
         //     'api_secret_key' => "BDaoPUkAZQbeFXhcJA85Da84XmrUB8",
         //     'created_at' => now(),
         // ]);
-        
+
         DB::table('role_staff')->insert([
                 'staff_id' => $user->id,
                 'role_id' => '5',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+        Mail::to($user->email)->send(new WelcomeMail($user,$validated['password']));
 
         // Redirect to the dashboard or intended page with a success message
         return redirect()->route('login')->with('success', 'Registration successful!');

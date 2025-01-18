@@ -9,6 +9,8 @@ use App\Services\CheckbookService;
 use Illuminate\Support\Facades\Auth; // Import the Auth facade
 use DateTime;
 use DateTimeZone;
+use App\Mail\VerifyMail;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -22,10 +24,10 @@ class UserController extends Controller
     {
         // Join 'user' with 'role_user' to fetch the role_id, and then join with 'roles' to fetch the role name
         $user = DB::table('users')->where('role','User')->orderBy('created_at', 'desc')->get();
-        
+
         return view('admin.user.index', compact('user'));
     }
-    
+
     public function checkbook_users()
     {
         $staffId = session('staff_id'); // Retrieves 'staff_id' from the session
@@ -42,7 +44,7 @@ class UserController extends Controller
         $usercount = DB::table('user_account')->where('userid',$staffId)->count();
         return view('admin.useraccount.index', compact('user','usercount'));
     }
-    
+
 
     // Show the form for creating a new user member
     public function create()
@@ -98,7 +100,7 @@ class UserController extends Controller
     if (!empty($checkbookUser->payment_method) && $deposit_option == $checkbookUser->payment_method) {
     return redirect()->back()->with('danger', $deposit_option . ' Payment Method is Already Used!');
 }
-    
+
 
     // Successfully created user, now get API keys
     $api_key = $createuser['key'];
@@ -126,7 +128,7 @@ class UserController extends Controller
         $cvv = $vcc['cvv'] ?? null;
         $expirationDate = $vcc['expiration_date'] ?? null;
     }
-    
+
 
     // Insert user's payment account into the database
     DB::table('user_account')->insert([
@@ -156,10 +158,10 @@ class UserController extends Controller
     {
         // Fetch the user member
         $user = DB::table('user_account')->where('id', $id)->first();
-    
+
         return view('admin.useraccount.edit', compact('user'));
     }
-    
+
 
     // Update the specified user member in storage
     public function update(Request $request, $id)
@@ -171,7 +173,7 @@ class UserController extends Controller
         $address = $request->input('line_1');
         $cardNumber = $request->input('card_number');
         $cvv = $request->input('cvv');
-        $expirationDate = $request->input('expiration_date'); 
+        $expirationDate = $request->input('expiration_date');
 
         if(DB::table('user_account')->where('user_id', $request->input('username'))->where('payment_method','CARD')->exists()){
 
@@ -180,7 +182,7 @@ class UserController extends Controller
             $this->checkbookService->deletePrevCardAccount($card_id, $api_key, $api_secret);
 
         }
-        
+
 
         $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
         // Update the user member's information in the 'user' table
@@ -196,10 +198,10 @@ class UserController extends Controller
             'cvv' => $request->input('cvv'),
             'expiration_date' => $request->input('expiration_date'),
         ]);
-    
+
         return redirect()->route('user.checkbook_usersbyid')->with('success', 'User updated successfully');
     }
-    
+
 
     // Remove the specified user member from storage
     public function destroy(Request $request, $id)
@@ -225,7 +227,7 @@ class UserController extends Controller
 }
    public function toggleVerify($id)
     {
-        
+
         // Retrieve the member by ID
         $member = DB::table('users')->where('id', $id)->first();
         if (!$member) {
@@ -235,11 +237,11 @@ class UserController extends Controller
         // Toggle the 'verify' field (if it's 1, change to 0, otherwise change to 1)
         // Update the verification status in the database
         DB::table('users')->where('id', $id)->update(['verify' => '1']);
-
+        Mail::to($member->email)->send(new VerifyMail($member));
         // Redirect back to the previous page or a specific page with a success message
         return redirect()->back()->with('success', 'Verification status updated successfully.');
     }
-    
+
     public function virtualcard(Request $request)
     {
         // Get staff ID from the session
@@ -275,13 +277,13 @@ class UserController extends Controller
 
         // Create JWT Header and Payload
         $header = json_encode([
-            'alg' => 'HS256', 
-            'typ' => 'JWT', 
+            'alg' => 'HS256',
+            'typ' => 'JWT',
             'kid' => $api_key // Public key
         ]);
 
         $payload = json_encode([
-            'id' => $vccid, 
+            'id' => $vccid,
             'exp' => $timestamp
         ]);
 
@@ -291,8 +293,8 @@ class UserController extends Controller
 
         // Generate Signature using the Secret Key
         $signature = hash_hmac(
-            'sha256', 
-            $base64UrlHeader . "." . $base64UrlPayload, 
+            'sha256',
+            $base64UrlHeader . "." . $base64UrlPayload,
             $api_secret_key, // Use the secret key for signing
             true
         );
@@ -345,7 +347,7 @@ class UserController extends Controller
     }*/
 // public function toggleVerify($id)
 // {
-    
+
 //     // Retrieve the member by ID
 //     $member = DB::table('users')->where('id', $id)->first();
 //     if (!$member) {

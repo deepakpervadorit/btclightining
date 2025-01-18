@@ -1,7 +1,8 @@
-<html >
-<head>
-   
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.app')
+
+@section('content')
+
+    {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
     <!-- Add Checkbook.io script in head -->
     <script src="https://app.checkbook.io/embed/vcc.js"></script>
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
@@ -62,71 +63,8 @@
             margin-bottom: 1.5rem;
         }
     </style>
-</head>
-<body style="background-color:#f3f4f6">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white">
-        <div class="container">
-            <a class="navbar-brand" href="#">Cumbo</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ route('dashboard') }}">Dashboard</a>
-                    </li>
-                    @php
-                        $staffId = session('staff_id');
-                    @endphp
-                    @if($staffId == '3')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('deposit') }}">Deposit</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('withdrawal') }}">Withdrawal</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('staff.index') }}">Staff</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('disputes') }}">Disputes</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('service_provider') }}">Service Provider</a></li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Payment Options
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ route('admin.stripe.keys') }}">Stripe</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.square.keys') }}">Square</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.checkbook.keys') }}">Checkbook</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('roles.index') }}">Roles and Permission</a></li>
-                    @endif
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Users
-                        </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            @if($staffId == '3')
-                                <li><a class="dropdown-item" href="{{ route('user.index') }}">Users</a></li>
-                                <li><a class="dropdown-item" href="{{ route('user.checkbookusers') }}">Checkbook Users</a></li>
-                            @else
-                                <li><a class="dropdown-item" href="{{ route('user.virtualcard') }}">Virtual Card</a></li>
-                                <li><a class="dropdown-item" href="{{ route('user.checkbook_usersbyid') }}">Checkbook Account</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                </ul>
-            </div>
 
-            <div class="d-flex">
-                <span class="nav-item"><button type="button" class="btn text-success btn-sm">Admin</button></span>
-                <span class="nav-item">
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="btn text-danger btn-sm">Logout</button>
-                    </form>
-                </span>
-            </div>
-        </div>
-    </nav>
-    <hr class="my-0" style="border-color: #f3f4f6; opacity: 1;">
-    
     <!-- Virtual Card Container -->
      <section class="bg-light py-5">
         <div class="container">
@@ -160,7 +98,7 @@
     <!-- Add Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {{-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> --}}
     <script>
     $(document).ready(function() {
         $('#transactionTable').DataTable();
@@ -176,5 +114,4 @@
             }).render('#container');
         // });
     </script>
-</body>
-</html>
+@endsection

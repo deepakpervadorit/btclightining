@@ -66,7 +66,7 @@ footer {
                             <input class="form-control" type="text" value="" id="tryspeedamountInput"/>
                             </div>
                         <a href="javascript:void(0);" id="tryspeedbtn" class="btn btn-primary" style="display:none;">Create Invoice</a>
-                        <form id="visa-form" class="hidden" method="POST" action="https://sandbox.fortunefinex.com/transaction/Checkout" style="display:none">
+                        <form id="visa-form" class="hidden" method="POST" action="{{ env('URL') }}" style="display:none">
                             @php
                                 $merchantTransactionId = bin2hex(random_bytes(6));
                             @endphp
@@ -90,7 +90,7 @@ footer {
                         </form>
 
                         <!-- Mastercard Form -->
-                        <form id="mastercard-form" style="display:none" method="POST" action="https://sandbox.fortunefinex.com/transaction/Checkout">
+                        <form id="mastercard-form" style="display:none" method="POST" action="{{ env('URL') }}">
                             @php
                                 $merchantTransactionId = bin2hex(random_bytes(6));
                             @endphp

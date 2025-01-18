@@ -17,6 +17,7 @@
                         <th>Email</th>
                         <th>Role</th> <!-- Display Role -->
                         <th>Deposits</th>
+                        <th>Withdrawals</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -27,6 +28,7 @@
                             <td>{{ $member->email }}</td>
                             <td>{{ $member->role_name }}</td> <!-- Display role name from roles table -->
                             <td><a href="{{ route('admin.merchant.deposits', $member->id) }}" class="btn btn-success">Deposits</a></td>
+                            <td><a href="{{ route('admin.merchant.withdrawals', $member->id) }}" class="btn btn-success">Withdrawals</a></td>
                             <td>
                                 <a href="{{ route('staff.edit', $member->id) }}" class="btn btn-warning">Edit</a>
                                 <form action="{{ route('staff.destroy', $member->id) }}" method="POST" style="display:inline;">
