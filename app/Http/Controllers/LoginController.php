@@ -96,6 +96,9 @@ public function login(Request $request)
         ->where('email', $credentials['email'])
         ->first();
 
+        $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
+        ->first();
+
     // Determine if the credentials are valid for staff
     if ($staff && Hash::check($credentials['password'], $staff->password)) {
         if ($staff->two_factor_enabled) {
@@ -126,7 +129,7 @@ public function login(Request $request)
         Session::put('staff_id', $staff->id);
         Session::put('staff_name', $staff->name);
         Session::put('staff_email', $staff->email);
-
+        Session::put('staff_role', $role->name);
         // Regenerate session to avoid session fixation
         $request->session()->regenerate();
 
@@ -165,6 +168,7 @@ public function login(Request $request)
             Session::put('staff_id', $user->id);
             Session::put('staff_name', $user->name);
             Session::put('staff_email', $user->email);
+            Session::put('staff_role', "User");
 
             // Regenerate session to avoid session fixation
             $request->session()->regenerate();
