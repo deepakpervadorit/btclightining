@@ -25,6 +25,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotifyPaymentController;
 use App\Http\Controllers\thankyouController;
 use App\Http\Controllers\TrySpeedController;
+use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
 
@@ -43,7 +44,9 @@ use Illuminate\Support\Facades\Auth;
 Route::get('/', function () {
     return view('welcome');
 });
-
+ // 2FA Verification Routes
+    Route::get('/2fa/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
 // Deposit and Payment Form
     Route::get('/deposit/form', [PaymentController::class, 'showForm'])
         ->name('show.deposit.form');
@@ -149,6 +152,9 @@ Route::name('admin.')->prefix('admin')->group(function () {
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['staffAuth'])->group(function () {
+   Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
+    Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+    Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
 
     //Merchant Routes
     Route::name('merchant.')->prefix('merchant')->group(function () {
@@ -156,6 +162,9 @@ Route::middleware(['staffAuth'])->group(function () {
         Route::get('/user/edit', [MerchantUserController::class, 'edit'])->name('user.edit');
         Route::get('/user/deposits/{id}', [MerchantUserController::class, 'deposits'])->name('user.deposits');
         Route::get('/user/withdrawals/{id}', [MerchantUserController::class, 'withdrawals'])->name('user.withdrawals');
+        Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
+        Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
+        Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
     });
 
 

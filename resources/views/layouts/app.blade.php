@@ -261,6 +261,7 @@ a.navbar-brand.text-white.mb-4 {
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                     @if($roleName == "Merchant")
                     <li><a class="dropdown-item" href="{{ route('merchant.users.index') }}">Users</a></li>
+                    <li><a class="dropdown-item" href="{{ route('merchant.2fa.show') }}">2Fa Verification</a></li>
                     @else
                         @if($staffId == '3')
                             <li><a class="dropdown-item" href="{{ route('user.index') }}">Users</a></li>
@@ -268,6 +269,7 @@ a.navbar-brand.text-white.mb-4 {
                         @else
                             <li><a class="dropdown-item" href="{{ route('user.virtualcard') }}">Virtual Card</a></li>
                             <li><a class="dropdown-item" href="{{ route('user.checkbook_usersbyid') }}">Checkbook Account</a></li>
+                            <li><a class="dropdown-item" href="{{ route('2fa.show') }}">2Fa Verification</a></li>
                         @endif
                     @endif
                 </ul>
