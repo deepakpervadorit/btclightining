@@ -15,13 +15,21 @@
         @endif
         
         <div class="card">
-            <div class="card-header">
-                <h2 class="card-title fs-5">Update Stripe Keys</h2>
+            <div class="card-header row justify-content-between align-items-center m-0">
+                <div class="col-auto p-0">
+                    <h2 class="card-title fs-5">Update Stripe Keys</h2>
+                </div>
+                <form action="{{ route('admin.stripe.update') }}" method="post" class="col-auto p-0">
+                    @csrf
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="switch_button" name="switch_button" {{ $status == 1 ? 'checked' : ''; }} onchange="this.form.submit()">
+                        <label class="form-check-label" for="switch_button">Disabled/Enabled</label>
+                    </div>
+                </form>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ route('admin.stripe.keys.update') }}">
                     @csrf
-            
                     <div class="mb-3">
                         <label for="stripe_key" class="form-label">Stripe Key</label>
                         <input type="text" class="form-control @error('stripe_key') is-invalid @enderror" id="stripe_key" name="stripe_key" value="{{ old('stripe_key', $stripeKey) }}" required>

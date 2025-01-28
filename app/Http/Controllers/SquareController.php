@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Models\PaymentGateway;
 
 class SquareController extends Controller
 {
@@ -15,8 +16,9 @@ class SquareController extends Controller
         $squareAccessToken = env('SQUARE_ACCESS_TOKEN');
         $squareLocationId = env('SQUARE_LOCATION_ID');
         $squareApplicationId = env('SQUARE_APPLICATION_ID');
+        $status = PaymentGateway::where('name', 'square')->value('status');
 
-        return view('admin.square-settings', compact('squareAccessToken', 'squareLocationId','squareApplicationId'));
+        return view('admin.square-settings', compact('squareAccessToken', 'squareLocationId','squareApplicationId', 'status'));
     }
 
     // Update the Square keys
@@ -58,5 +60,16 @@ class SquareController extends Controller
                 );
             }
         }
+    }
+    
+    public function update(Request $request)
+    {
+        $status = $request->has('switch_button') ? 1 : 0;
+    
+        // Use the PaymentGateway model to find or create the record
+        $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'square']);
+        $payment_gateway->update(['status' => $status]);
+    
+        return back()->with('success', 'Square status updated successfully!');
     }
 }

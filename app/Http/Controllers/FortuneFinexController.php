@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Models\PaymentGateway;
 
 class FortuneFinexController extends Controller
 {
@@ -21,7 +22,9 @@ class FortuneFinexController extends Controller
         $terminal_id = env('TERMINAL_ID');
         $partner_id = env('PARTNER_ID');
         $api_type = env('URL');
-        return view('admin.fortunefinex-settings', compact('member_id', 'language', 'secret_key', 'to_type', 'redirect_url', 'notification_url', 'terminal_id', 'partner_id', 'api_type'));
+        $status = PaymentGateway::where('name', 'fortuneFinex')->value('status');
+        
+        return view('admin.fortunefinex-settings', compact('member_id', 'language', 'secret_key', 'to_type', 'redirect_url', 'notification_url', 'terminal_id', 'partner_id', 'api_type', 'status'));
     }
 
     public function updateKeys(Request $request)
@@ -88,5 +91,16 @@ class FortuneFinexController extends Controller
                 );
             }
         }
+    }
+    
+    public function update(Request $request)
+    {
+        $status = $request->has('switch_button') ? 1 : 0;
+    
+        // Use the PaymentGateway model to find or create the record
+        $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'fortuneFinex']);
+        $payment_gateway->update(['status' => $status]);
+    
+        return back()->with('success', 'FortuneFinex status updated successfully!');
     }
 }

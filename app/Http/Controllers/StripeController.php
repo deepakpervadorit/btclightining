@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Models\PaymentGateway;
 
 class StripeController extends Controller
 {
@@ -14,8 +15,9 @@ class StripeController extends Controller
         // Fetch the current values from the .env file
         $stripeKey = env('STRIPE_KEY');
         $stripeSecret = env('STRIPE_SECRET');
+        $status = PaymentGateway::where('name', 'stripe')->value('status');
 
-        return view('admin.stripe-settings', compact('stripeKey', 'stripeSecret'));
+        return view('admin.stripe-settings', compact('stripeKey', 'stripeSecret', 'status'));
     }
 
     // Update the Stripe keys
@@ -55,5 +57,16 @@ class StripeController extends Controller
                 );
             }
         }
+    }
+    
+    public function update(Request $request)
+    {
+        $status = $request->has('switch_button') ? 1 : 0;
+    
+        // Use the PaymentGateway model to find or create the record
+        $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'stripe']);
+        $payment_gateway->update(['status' => $status]);
+    
+        return back()->with('success', 'Stripe status updated successfully!');
     }
 }

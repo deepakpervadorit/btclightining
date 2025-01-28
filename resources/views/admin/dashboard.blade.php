@@ -36,7 +36,7 @@
         <h2>Dashboard</h2>
     </div>
 </div>
-
+@if(Illuminate\Support\Facades\Session::get('staff_role') != 'Superadmin')
 <div class="row mb-2">
     <div class="col-lg-6">
         <div class="card">
@@ -58,6 +58,7 @@
         </div>
     </div>
 </div>
+@endif
 @if($userId != '3')
 
 <div class="col-12">

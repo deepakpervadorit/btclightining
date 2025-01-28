@@ -147,8 +147,10 @@ Route::name('admin.')->prefix('admin')->group(function () {
     Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     Route::get('/fortunefinex-settings', [FortuneFinexController::class, 'index'])->name('fortunefinex.keys');
     Route::post('/fortunefinex-keys/update', [FortuneFinexController::class, 'updateKeys'])->name('fortunefinex.keys.update');
+    Route::post('/fortunefinex-settings/update', [FortuneFinexController::class, 'update'])->name('fortunefinex.update');
     Route::get('/tryspeed-settings', [TrySpeedController::class, 'index'])->name('tryspeed.keys');
     Route::post('/tryspeed-keys/update', [TrySpeedController::class, 'updateKeys'])->name('tryspeed.keys.update');
+    Route::post('/tryspeed-settings/update', [TrySpeedController::class, 'update'])->name('tryspeed.update');
 });
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['staffAuth'])->group(function () {
@@ -230,6 +232,9 @@ Route::middleware(['staffAuth'])->group(function () {
     Route::post('/stripe-keys/update', [StripeController::class, 'updateStripe'])
         ->name('admin.stripe.keys.update')
         ->middleware('permission:Stripe Setting');
+    Route::post('/stripe-settings/update', [StripeController::class, 'update'])
+        ->name('admin.stripe.update')
+        ->middleware('permission:Stripe Setting');
 
     // Square Settings
     Route::get('/square-settings', [SquareController::class, 'index'])
@@ -238,6 +243,9 @@ Route::middleware(['staffAuth'])->group(function () {
     Route::post('/square-keys/update', [SquareController::class, 'updateSquare'])
         ->name('admin.square.keys.update')
         ->middleware('permission:Square Settings');
+    Route::post('/square-settings/update', [SquareController::class, 'update'])
+        ->name('admin.square.update')
+        ->middleware('permission:Square Settings');
 
     // Checkbook Settings
     Route::get('/checkbook-settings', [CheckbookController::class, 'index'])
@@ -245,6 +253,9 @@ Route::middleware(['staffAuth'])->group(function () {
         ->middleware('permission:Checkbook Settings');
     Route::post('/checkbook-keys/update', [CheckbookController::class, 'updateCheckbook'])
         ->name('admin.checkbook.keys.update')
+        ->middleware('permission:Checkbook Settings');
+    Route::post('/checkbook-settings/update', [CheckbookController::class, 'update'])
+        ->name('admin.checkbook.update')
         ->middleware('permission:Checkbook Settings');
 
 

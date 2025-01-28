@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Models\PaymentGateway;
 
 class CheckbookController extends Controller
 {
@@ -15,7 +16,9 @@ class CheckbookController extends Controller
         $checkbookKey = env('CHECKBOOK_API_KEY');
         $checkbookSecret = env('CHECKBOOK_API_SECRET');
         $api_type = env('CHECKBOOK_ENDPOINT');
-        return view('admin.checkbook-settings', compact('checkbookKey', 'checkbookSecret','api_type'));
+        $status = PaymentGateway::where('name', 'checkbook')->value('status');
+        
+        return view('admin.checkbook-settings', compact('checkbookKey', 'checkbookSecret','api_type', 'status'));
     }
 
     // Update the Checkbook keys
@@ -64,5 +67,16 @@ class CheckbookController extends Controller
                 );
             }
         }
+    }
+    
+    public function update(Request $request)
+    {
+        $status = $request->has('switch_button') ? 1 : 0;
+    
+        // Use the PaymentGateway model to find or create the record
+        $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'checkbook']);
+        $payment_gateway->update(['status' => $status]);
+    
+        return back()->with('success', 'Checkbook status updated successfully!');
     }
 }

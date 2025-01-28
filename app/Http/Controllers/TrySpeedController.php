@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
+use App\Models\PaymentGateway;
 
 class TrySpeedController extends Controller
 {
@@ -13,7 +14,9 @@ class TrySpeedController extends Controller
     {
         // Fetch the current values from the .env file
         $secret_key = env('SPEED_SECRET_KEY');
-        return view('admin.tryspeed-settings', compact('secret_key'));
+        $status = PaymentGateway::where('name', 'trySpeed')->value('status');
+        
+        return view('admin.tryspeed-settings', compact('secret_key', 'status'));
     }
 
     public function updateKeys(Request $request)
@@ -49,5 +52,16 @@ class TrySpeedController extends Controller
                 );
             }
         }
+    }
+    
+    public function update(Request $request)
+    {
+        $status = $request->has('switch_button') ? 1 : 0;
+    
+        // Use the PaymentGateway model to find or create the record
+        $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'trySpeed']);
+        $payment_gateway->update(['status' => $status]);
+    
+        return back()->with('success', 'TrySpeed status updated successfully!');
     }
 }

@@ -12,6 +12,7 @@ use DateTime;
 use DateTimeZone;
 use App\Mail\WelcomeMailMerchant;
 use Illuminate\Support\Facades\Mail;
+use App\Models\PaymentGateway;
 
 class StoreController extends Controller
 {
@@ -69,7 +70,8 @@ class StoreController extends Controller
     // Show the form for creating a new user member
     public function create()
     {
-        return view('admin.store.create');
+        $payment_gateways = PaymentGateway::all();
+        return view('admin.store.create', compact('payment_gateways'));
     }
 
     // Store a newly created user member in storage
@@ -80,8 +82,8 @@ class StoreController extends Controller
     $email = $request->input('email');
     $password = bcrypt($request->input('password'));
     $gateways = implode(",",$request->input('gateways'));
-    $transaction_fees = $request->input('transaction_fees');
-
+    $deposit_fees = $request->input('deposit_fees');
+    $withdraw_fees = $request->input('withdraw_fees');
 
     // Insert user's payment account into the database
     $id = DB::table('staff')->insertGetId([
@@ -101,7 +103,8 @@ class StoreController extends Controller
     DB::table('store_details')->insert([
         'store_id' => $id,
         'gateways' => $gateways,
-        'transacxtion_fees' => $transaction_fees,
+        'transacxtion_fees' => $deposit_fees,
+        'withdraw_fees' => $withdraw_fees,
     ]);
 
 
