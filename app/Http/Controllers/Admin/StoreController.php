@@ -71,7 +71,8 @@ class StoreController extends Controller
     public function create()
     {
         $payment_gateways = PaymentGateway::all();
-        return view('admin.store.create', compact('payment_gateways'));
+        $games = DB::table('games')->get();
+        return view('admin.store.create', compact('payment_gateways','games'));
     }
 
     // Store a newly created user member in storage
@@ -82,6 +83,7 @@ class StoreController extends Controller
     $email = $request->input('email');
     $password = bcrypt($request->input('password'));
     $gateways = implode(",",$request->input('gateways'));
+    $game_provider = implode(',',$request->input('game_provider'));
     $deposit_fees = $request->input('deposit_fees');
     $withdraw_fees = $request->input('withdraw_fees');
 
@@ -105,6 +107,7 @@ class StoreController extends Controller
         'gateways' => $gateways,
         'transacxtion_fees' => $deposit_fees,
         'withdraw_fees' => $withdraw_fees,
+        'game_providers' => $game_provider
     ]);
 
 

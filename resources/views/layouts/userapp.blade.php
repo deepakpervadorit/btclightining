@@ -72,68 +72,68 @@
         <main>
             @yield('content')
         </main>
-
-        <footer>
-            <div class="container-fluid">
-                <div class="px-lg-3">
-                    <div class="row mx-0">
-                        <div class="col">
-                            <h4 class="fs-2"><a class="nav-link" href="{{ url('/') }}">Cumbo</a></h4>
-                        </div>
-                        <div class="col">
-                            <h4>Hosting</h4>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0 active" aria-current="page" href="#">VPS Hosting</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">Dedicated Business Hosting</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">Prepaid Hosting</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col">
-                            <h4>Company</h4>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">Pricing</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">FAQs</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">About Us</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col">
-                            <h4>Get Help</h4>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">Contact Us</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">Privacy policy</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="#">T & C Apply</a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col">
-                            <h4>Contact</h4>
-                            <ul class="nav flex-column">
-                                <li class="nav-item">
-                                    <a class="nav-link ps-0" href="mailto:support@cumbo.com">support@cumbo.com</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </footer>
+        <img src="{{asset('assets/img/background.png')}}" width="100%" >
+        <!--<footer>-->
+        <!--    <div class="container-fluid">-->
+        <!--        <div class="px-lg-3">-->
+        <!--            <div class="row mx-0">-->
+        <!--                <div class="col">-->
+        <!--                    <h4 class="fs-2"><a class="nav-link" href="{{ url('/') }}">Cumbo</a></h4>-->
+        <!--                </div>-->
+        <!--                <div class="col">-->
+        <!--                    <h4>Hosting</h4>-->
+        <!--                    <ul class="nav flex-column">-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0 active" aria-current="page" href="#">VPS Hosting</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">Dedicated Business Hosting</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">Prepaid Hosting</a>-->
+        <!--                        </li>-->
+        <!--                    </ul>-->
+        <!--                </div>-->
+        <!--                <div class="col">-->
+        <!--                    <h4>Company</h4>-->
+        <!--                    <ul class="nav flex-column">-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">Pricing</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">FAQs</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">About Us</a>-->
+        <!--                        </li>-->
+        <!--                    </ul>-->
+        <!--                </div>-->
+        <!--                <div class="col">-->
+        <!--                    <h4>Get Help</h4>-->
+        <!--                    <ul class="nav flex-column">-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">Contact Us</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">Privacy policy</a>-->
+        <!--                        </li>-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="#">T & C Apply</a>-->
+        <!--                        </li>-->
+        <!--                    </ul>-->
+        <!--                </div>-->
+        <!--                <div class="col">-->
+        <!--                    <h4>Contact</h4>-->
+        <!--                    <ul class="nav flex-column">-->
+        <!--                        <li class="nav-item">-->
+        <!--                            <a class="nav-link ps-0" href="mailto:support@cumbo.com">support@cumbo.com</a>-->
+        <!--                        </li>-->
+        <!--                    </ul>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--    </div>-->
+        <!--</footer>-->
     </div>
 
     <!-- Bootstrap 5 JS and Popper.js -->

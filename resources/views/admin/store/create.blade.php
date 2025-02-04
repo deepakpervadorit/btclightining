@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <div class="container mt-4">
     <h1 class="mb-4">Create New Merchant</h1>
 
@@ -25,6 +27,15 @@
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input type="password" name="password" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="server" class="form-label">Server Provider</label>
+                    <select class="form-select js-example-basic-multiple" id="server" name="game_provider[]" multiple required>
+                        <option value="" disabled>Select a server provider</option>
+                        @foreach($games as $game)
+                            <option value="{{ $game->id }}">{{ $game->game }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <h5>Payment gateways</h5>
                 <div class="mb-3">
@@ -60,6 +71,14 @@
                       </label>
                     </div>
                     @endif
+                    @if ($payment_gateways->where('name', 'trySpeed')->first()?->status == 1)
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" value="tryspeed" id="tryspeed" name="gateways[]">
+                      <label class="form-check-label" for="tryspeed">
+                        Try Speed
+                      </label>
+                    </div>
+                    @endif
                 </div>
                 
                 <div class="row">
@@ -79,4 +98,11 @@
         </div>
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+    $('.js-example-basic-multiple').select2();
+});
+</script>
 @endsection

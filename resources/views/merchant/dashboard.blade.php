@@ -36,8 +36,17 @@
         <h2>Dashboard</h2>
     </div>
 </div>
-<div class="row mb-2">
-    <div class="col-lg-12">
+<div class="row mb-2 gap-3">
+    <div class="col-md-12">
+        <div class="card">
+           <div class="card-body">
+                <h5 class="card-title">Your Encrypted Merchant ID</h5>
+                <input class="form-control" type="text" value="{{$encryptmerchantid}}" id="merchantid" readonly>
+                <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('merchantid')">Copy</a>
+           </div>
+        </div>
+    </div>
+    <div class="col-md-12">
         <div class="card">
            <div class="card-body">
                 <h5 class="card-title">User Registeration Link</h5>

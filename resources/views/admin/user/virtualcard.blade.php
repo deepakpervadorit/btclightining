@@ -4,7 +4,12 @@
 
     {{-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"> --}}
     <!-- Add Checkbook.io script in head -->
+
+    @if(env('CHECKBOOK_API_KEY'))
     <script src="https://app.checkbook.io/embed/vcc.js"></script>
+    @else
+    <script src="https://sandbox.checkbook.io/embed/vcc.js"></script>
+    @endif
     <link href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css" rel="stylesheet">
 
     <style>

@@ -62,6 +62,8 @@ class thankyouController extends Controller{
                         'user_id' => $updatedRow->user_id,
                         'amount' => $updatedRow->amount,
                         'status' => $updatedRow->status,
+                        'game_username' => $updatedRow->game_username,
+                        'server' => $updatedRow->server,
                         'payment_method' => $updatedRow->paymentGateway,
                         'currency' => $updatedRow->currency,
                     ]);

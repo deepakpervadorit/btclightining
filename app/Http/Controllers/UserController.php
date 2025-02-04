@@ -109,7 +109,7 @@ class UserController extends Controller
     // $cardNumber = null; $cvv = null; $expirationDate = null;
     if($deposit_option == 'ZELLE'){
         $zelle = $this->checkbookService->createZelleAccount($email, $api_key, $api_secret);
-        dd($zelle);
+        // dd($zelle);
         $api_id = $zelle['id'];
     } else if($deposit_option == 'CARD'){
         $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
@@ -270,6 +270,7 @@ class UserController extends Controller
         $expiration_date = $vccDetails['vccs'][0]['expiration_date'];
         $balance = $vccDetails['vccs'][0]['balance'];
         $vccCard = $this->checkbookService->virtualcardDetails($api_key, $api_secret_key, $vccid);
+        // dd($vccCard);
         $transactions = $vccCard['transactions'];
         // Convert expiration date to a UNIX timestamp
         $date = new DateTime($expiration_date, new DateTimeZone('UTC'));

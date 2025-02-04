@@ -9,6 +9,7 @@ footer {
     display: none;
 }
 </style>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <section class="bg-light py-5">
         <div class="container">
             <div class="row justify-content-center align-items-center">
@@ -43,22 +44,45 @@ footer {
                             <div class="alert alert-warning border-0 border-start border-5 border-warning rounded-0" role="alert">
                                 <h3 class="fs-6">Quick Payment Options</h3>
                                 <p>
-                                    <img src="{{ asset('public/assets/img/apple-pay.svg') }}" height="35" class="me-1" alt="Apple Pay" />
+                                    <!--<img src="{{ asset('public/assets/img/apple-pay.svg') }}" height="35" class="me-1" alt="Apple Pay" />-->
                                     <img src="{{ asset('public/assets/img/cash-app.png') }}" height="40" class="me-1 py-2" alt="Cash App" />
                                     is supported through the Debit/Credit card option.
                                 </p>
                             </div>
                             <div class="mb-3">
-                                <label for"" class="form-label">Username</label>
-                                <input class="form-control" type="text" name="username" value="{{session('staff_name')}}" ReadOnly/>
+                                    <label for="server" class="form-label">Server Provider</label>
+                                    <select class="form-select js-example-basic-single" id="server" name="server[]" multiple required>
+                                        <option value="" disabled>Select a server provider</option>
+                                        
+                                        @foreach($games as $key => $game)
+                                        @if(in_array($game->id, $merchant_game))
+                                            <option value="{{ $game->id }}" selected>{{ $game->game }}</option>
+                                        @else
+                                            <option value="{{ $game->id }}">{{ $game->game }}</option>
+                                        @endif
+                                        @endforeach
+                                    </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label mt-3">Email/Phone</label>
+                                <input type="text" name="email" class="form-control mt-1" value="{{session('staff_email')}}" id="email" readonly>
+                                </div>
+                            <div class="mb-3">
+                                    <label for="username" class="form-label">Game Username</label>
+                                    <input type="text" class="form-control" id="gameusername" name="gameusername" value="">
+                                    <input type="hidden" class="form-control" id="username" name="username" value="{{session('staff_name')}}">
                             </div>
                             <div class="mb-3">
                             <label for="payment-method" class="form-label">Select Payment Method:</label>
                             <select id="payment-method" class="form-select">
                                 <option value="">Choose...</option>
+                                @if ($merchant_details && strpos($merchant_details->gateways, 'tryspeed') !== false)
                                 <option value="tryspeed">Try Speed</option>
+                                @endif
+                                @if ($merchant_details && strpos($merchant_details->gateways, 'fortunefinex') !== false)
                                 <option value="visa">Visa</option>
                                 <option value="mastercard">Mastercard</option>
+                                @endif
                             </select>
                         </div>
                         <div class="mb-3" id="tryspeedamount" style="display:none;">
@@ -123,8 +147,20 @@ footer {
             </div>
         </div>
     </section>
-        <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    var $j = jQuery.noConflict();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+
+<script>
+    $j(document).ready(function() {
+    $j('.js-example-basic-single').select2();
+});
+</script>
     <script>
     document.getElementById('vamountInput').addEventListener('blur', function() {
     // Get the input value
@@ -218,6 +254,8 @@ document.getElementById('mamountInput').addEventListener('input', function() {
 <script>
     $("#mastercard-form").on("submit", function(e){
         e.preventDefault();
+        const server = $("#server").val();
+        const gameusername = $("gameusername").val();
         const visaForm = document.getElementById('visa-form');
         const mastercardForm = document.getElementById('mastercard-form');
         const visaAmount = mastercardForm.querySelector('input[name="amount"]').value;
@@ -243,6 +281,8 @@ document.getElementById('mamountInput').addEventListener('input', function() {
             currency: currency,
             gateway:"Fortune Finex",
             status: "Pending",
+            serverlist:server,
+            gameusername:gameusername,
             _token: "{{ csrf_token() }}" // CSRF token for security
         },
         success: function (response) {
@@ -256,6 +296,8 @@ document.getElementById('mamountInput').addEventListener('input', function() {
     });
     $("#visa-form").on("submit", function (e) {
         e.preventDefault();
+        const server = $("#server").val();
+        const gameusername = $("gameusername").val();
         var paymentMethodSelect = $('payment-method').val();
         const visaForm = document.getElementById('visa-form');
 
@@ -283,6 +325,8 @@ document.getElementById('mamountInput').addEventListener('input', function() {
                     currency: currency,
                     gateway:"Fortune Finex",
                     status: "Pending",
+                    serverlist:server,
+                    gameusername:gameusername,
                     _token: "{{ csrf_token() }}" // CSRF token for security
                 },
                 success: function (response) {
@@ -321,6 +365,8 @@ $("#tryspeedbtn").on('click',function(e){
         var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
         var expires_at = response.expires_at;
         var invoiceid = response.id;
+        var server = $("#server").val();
+        var gameusername = $("#gameusername").val();
         console.log(checkoutUrl);
         $.ajax({
                 url: "{{ url('/store') }}", // Laravel route
@@ -332,81 +378,84 @@ $("#tryspeedbtn").on('click',function(e){
                     currency: "USD",
                     gateway:"Try Speed",
                     status: "Pending",
+                    serverlist:server,
+                    gameusername:gameusername,
                     _token: "{{ csrf_token() }}" // CSRF token for security
                 },
                 success: function (response) {
-                    console.log(response.message); // Success message
-
+                    console.log(response); // Success message
+                    alert(response);
+                    $.ajax({
+                        url: '/generate-invoice-qr',
+                        method: 'POST',
+                        data: {
+                            payment_request: checkoutUrl,
+                            expires_at: expires_at,
+                            invoiceid:invoiceid
+                        },
+                        success: function(invoice) {
+                            console.log(invoice); // Debug the raw response
+                            window.location.href = "/deposit/invoice/"+invoice+"";
+                            // Ensure it's a string before calling `replace`
+                            // if (typeof qrCodeUrl === "string") {
+                            //     qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
+                            //     var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
+                            //     $('#loading-indicator').css('display', 'none');
+                            //     // $('#payment-qr').css('display', 'block');
+                            //     // $('#payment-qr').attr('src', svgDataUrl);
+                            //     var form = document.createElement('form');
+                            //     form.method = 'POST';
+                            //     form.action = "";
+            
+                            //     // Create a hidden input to hold the svgDataUrl
+                            //     var input = document.createElement('input');
+                            //     input.type = 'hidden';
+                            //     input.name = 'svgDataUrl';
+                            //     input.value = svgDataUrl;
+                            //     form.appendChild(input);
+            
+                            //     var input2 = document.createElement('input');
+                            //     input2.type = 'hidden';
+                            //     input2.name = 'checkoutUrl';
+                            //     input2.value = checkoutUrl;
+                            //     form.appendChild(input2);
+            
+                            //     var input3 = document.createElement('input');
+                            //     input3.type = 'hidden';
+                            //     input3.name = 'id';
+                            //     input3.value = id;
+                            //     form.appendChild(input3);
+            
+                            //     var input4 = document.createElement('input');
+                            //     input4.type = 'hidden';
+                            //     input4.name = 'invoiceid';
+                            //     input4.value = invoiceid;
+                            //     form.appendChild(input4);
+            
+                            //     var inputCsrf = document.createElement('input');
+                            //     inputCsrf.type = 'hidden';
+                            //     inputCsrf.name = '_token';
+                            //     inputCsrf.value = '{{ csrf_token() }}'; // Laravel's CSRF token helper
+                            //     form.appendChild(inputCsrf);
+            
+                            //     // Append the form to the body and submit it
+                            //     document.body.appendChild(form);
+                            //     form.submit();
+                            // } else {
+                            //     console.error("Invalid response type. Expected a string.");
+                            // }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error("QR generation failed: " + error);
+                        }
+                    });
                 },
                 error: function (xhr) {
                     console.log('An error occurred: ' + xhr.responseJSON.message);
                 }
         });
 
-        $.ajax({
-            url: '/generate-invoice-qr',
-            method: 'POST',
-            data: {
-                payment_request: checkoutUrl,
-                expires_at: expires_at,
-                invoiceid:invoiceid
-            },
-            success: function(invoice) {
-                console.log(invoice); // Debug the raw response
-                window.location.href = "/deposit/invoice/"+invoice+"";
-                // Ensure it's a string before calling `replace`
-                // if (typeof qrCodeUrl === "string") {
-                //     qrCodeUrl = qrCodeUrl.replace(/^<\?xml[^>]*\?>/, '');
-                //     var svgDataUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrCodeUrl);
-                //     $('#loading-indicator').css('display', 'none');
-                //     // $('#payment-qr').css('display', 'block');
-                //     // $('#payment-qr').attr('src', svgDataUrl);
-                //     var form = document.createElement('form');
-                //     form.method = 'POST';
-                //     form.action = "";
-
-                //     // Create a hidden input to hold the svgDataUrl
-                //     var input = document.createElement('input');
-                //     input.type = 'hidden';
-                //     input.name = 'svgDataUrl';
-                //     input.value = svgDataUrl;
-                //     form.appendChild(input);
-
-                //     var input2 = document.createElement('input');
-                //     input2.type = 'hidden';
-                //     input2.name = 'checkoutUrl';
-                //     input2.value = checkoutUrl;
-                //     form.appendChild(input2);
-
-                //     var input3 = document.createElement('input');
-                //     input3.type = 'hidden';
-                //     input3.name = 'id';
-                //     input3.value = id;
-                //     form.appendChild(input3);
-
-                //     var input4 = document.createElement('input');
-                //     input4.type = 'hidden';
-                //     input4.name = 'invoiceid';
-                //     input4.value = invoiceid;
-                //     form.appendChild(input4);
-
-                //     var inputCsrf = document.createElement('input');
-                //     inputCsrf.type = 'hidden';
-                //     inputCsrf.name = '_token';
-                //     inputCsrf.value = '{{ csrf_token() }}'; // Laravel's CSRF token helper
-                //     form.appendChild(inputCsrf);
-
-                //     // Append the form to the body and submit it
-                //     document.body.appendChild(form);
-                //     form.submit();
-                // } else {
-                //     console.error("Invalid response type. Expected a string.");
-                // }
-            },
-            error: function(xhr, status, error) {
-                console.error("QR generation failed: " + error);
-            }
-        });
+        
     }).fail(function(xhr, status, error) {
         console.error("Request failed with status: " + status + ", error: " + error);
         console.error("Response: " + xhr.responseText);

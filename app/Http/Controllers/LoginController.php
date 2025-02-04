@@ -205,13 +205,20 @@ public function login(Request $request)
             'merchantid' => 'required',
         ]);
 
-        // $createuser = $this->checkbookService->createUser($validated['name']);
+        $createuser = $this->checkbookService->createUser($validated['name']);
 
-        // if (isset($createuser['error'])) {
-        //     // Abort user creation if username is already in use
-        //     session()->flash('error', 'Username is already in use. Please choose a different name.');
-        //     abort(400, 'Username already in use.');
-        // }
+        if (isset($createuser['error'])) {
+            // Abort user creation if username is already in use
+            session()->flash('error', 'Username is already in use. Please choose a different name.');
+            abort(400, 'Username already in use.');
+        }
+        try {
+            // Try to decrypt the value
+            $merchantid = Crypt::decrypt($validated['merchantid']);
+        } catch (DecryptException $e) {
+            // If decryption fails, assume it's not encrypted and use the original value
+            $merchantid = $validated['merchantid'];
+        }
 
         // Create the user with the validated data and hashed password
         $user = User::create([
@@ -219,17 +226,17 @@ public function login(Request $request)
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']), // Hash the password before saving
             'role' => 'User',
-            'created_by' => $validated['merchantid'],
+            'created_by' => $merchantid,
         ]);
 
-        // DB::table('checkbook_users')->insert([
-        //     'userid' => $user->id,
-        //     'user_id' => $createuser['user_id'],
-        //     'checkbook_id' => $createuser['id'],
-        //     'api_key' => $createuser['key'],
-        //     'api_secret_key' => $createuser['secret'],
-        //     'created_at' => now(),
-        // ]);
+        DB::table('checkbook_users')->insert([
+            'userid' => $user->id,
+            'user_id' => $createuser['user_id'],
+            'checkbook_id' => $createuser['id'],
+            'api_key' => $createuser['key'],
+            'api_secret_key' => $createuser['secret'],
+            'created_at' => now(),
+        ]);
 
         // DB::table('checkbook_users')->insert([
         //     'userid' => $user->id,

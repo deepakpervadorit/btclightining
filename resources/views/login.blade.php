@@ -44,7 +44,10 @@
         @error('password')
             <div class="text-danger">{{ $message }}</div>
         @enderror
+        <span style="float:left;"><small><a href="{{route('register')}}">Don't have an account? Signup</a></small></span>
+        <span style="float:right;"><small><a href="{{url('/password/reset')}}">Forgot Password?</a></small></span>
     </div>
+    <br>
     <button type="submit" class="btn btn-dark text-white">Log in</button>
 </form>
     </div>

@@ -22,7 +22,6 @@ thead tr th {
     text-align: center !important;
     font-size: 14px;
 }
-
 </style>
 @php
 use Illuminate\Support\Facades\DB;
@@ -95,15 +94,17 @@ use Illuminate\Support\Facades\DB;
                     <tr>
                         <td>{{ $deposit->id }}</td>
                         @php
-                        $provider = DB::table('games')->where('id',$deposit->server)->first();
+                        $serverIds = explode(',', $deposit->server);
+                        $providers = DB::table('games')->whereIn('id',$serverIds)->get();
                         
                         @endphp
-                        <td>@php if (isset($provider->game)) {
-    $game = $provider->game;
-    echo $game;
-} else {
-    echo "Game property does not exist.";
-} @endphp</td>
+                        <td>
+                            @if($providers)
+                                @foreach($providers as $provider)
+                                    {{$provider->game}},
+                                @endforeach
+                            @endif
+                        </td>
                         <td>{{ $deposit->payment_method }}</td>
                         <td>{{ $deposit->username }}</td>
                         <td>{{ $deposit->amount }}</td>

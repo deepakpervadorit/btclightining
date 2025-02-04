@@ -14,6 +14,8 @@ footer {
 
 </style>
       <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 
     <section class="bg-light py-5">
         <div class="container">
@@ -49,7 +51,7 @@ footer {
                             <div class="alert alert-warning border-0 border-start border-5 border-warning rounded-0" role="alert">
                                 <h3 class="fs-6">Quick Payment Options</h3>
                                 <p> 
-                                    <img src="{{ asset('public/assets/img/apple-pay.svg') }}" height="35" class="me-1" alt="Apple Pay" />
+                                    <!--<img src="{{ asset('public/assets/img/apple-pay.svg') }}" height="35" class="me-1" alt="Apple Pay" />-->
                                     <img src="{{ asset('public/assets/img/cash-app.png') }}" height="40" class="me-1 py-2" alt="Cash App" />
                                     is supported through the Debit/Credit card option.
                                 </p>
@@ -59,10 +61,15 @@ footer {
                                 @csrf
                                 <div class="mb-3">
                                     <label for="server" class="form-label">Server Provider</label>
-                                    <select class="form-select" id="server" name="server">
-                                        <option value="" selected disabled>Select a server provider</option>
-                                        @foreach($games as $game)
+                                    <select class="form-select js-example-basic-single" id="server" name="server[]" multiple required>
+                                        <option value="" disabled>Select a server provider</option>
+                                        
+                                        @foreach($games as $key => $game)
+                                        @if(in_array($game->id, $merchant_game))
+                                            <option value="{{ $game->id }}" selected>{{ $game->game }}</option>
+                                        @else
                                             <option value="{{ $game->id }}">{{ $game->game }}</option>
+                                        @endif
                                         @endforeach
                                     </select>
                                 </div>
@@ -77,7 +84,7 @@ footer {
                                 <input type="text" name="email" class="form-control mt-1" value="{{$staffEmail}}" id="email" readonly>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="username" class="form-label">Username</label>
+                                    <label for="username" class="form-label">Game Username</label>
                                     <input type="text" class="form-control" id="gameusername" name="gameusername" value="">
                                     <input type="hidden" class="form-control" id="username" name="username" value="{{$staffName}}">
                                 </div>
@@ -89,24 +96,33 @@ footer {
             @endphp
                     <select name="deposit_option" id="username-select" class="form-control mt-1">
                         <option>-- Select Withdrawal Option --</option>
+                        @if ($merchant_details && strpos($merchant_details->gateways, 'checkbook') !== false)
                         @if($user_account->isNotEmpty())
-            @foreach($user_account as $useraccount)
-                <option value="{{ str_replace('_new', '', $useraccount->payment_method) }}" 
-                        data-payment-method="{{ str_replace('_new', '', $useraccount->payment_method) }}"
-                        data-api-id="{{$useraccount->api_id}}"
-                        data-api-key="{{$useraccount->api_key}}"
-                        data-api-secret="{{$useraccount->api_secret}}"
-                        data-user-id="{{$useraccount->user_id}}">
-                    {{ str_replace('_new', '', $useraccount->payment_method) }}
-                </option>
-            @endforeach
+                        
+                            @foreach($user_account as $useraccount)
+                                <option value="{{ str_replace('_new', '', $useraccount->payment_method) }}" 
+                                        data-payment-method="{{ str_replace('_new', '', $useraccount->payment_method) }}"
+                                        data-api-id="{{$useraccount->api_id}}"
+                                        data-api-key="{{$useraccount->api_key}}"
+                                        data-api-secret="{{$useraccount->api_secret}}"
+                                        data-user-id="{{$useraccount->user_id}}">
+                                    {{ str_replace('_new', '', $useraccount->payment_method) }}
+                                </option>
+                            @endforeach
+                        
+            
             @else
             <option value="ZELLE_new">Zelle</option>
             <option value="CARD_new">Push To Card</option>
             <option value="VCC_new">Virtual Card</option>
             @endif
+            @endif
+            @if ($merchant_details && strpos($merchant_details->gateways, 'tryspeed') !== false)
             <option value="try_speed">Try Speed</option>
+            @endif
+            @if ($merchant_details && strpos($merchant_details->gateways, 'fortunefinex') !== false)
             <option value="fortunefinex">FortuneFinex</option>
+            @endif
             </select>
             
             
@@ -162,6 +178,7 @@ footer {
                                 <div class="mb-3">
                                     <label for="amount" class="form-label">Amount <span id="EUR" style="display:none;">(EUR)</span></label>
                                     <input type="text" class="form-control" id="amount" name="amount" required>
+                                    <small class="text-danger" id="excess_amount"></small>
                                 </div>
                                 <div id="user-container" style="margin-bottom:15px;">
     <!--<div class="mb-3">-->
@@ -186,8 +203,12 @@ footer {
         </div>
     </section>
       <!-- jQuery - Required for Toastr -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    var $j = jQuery.noConflict();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Toastr CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
 
@@ -198,7 +219,23 @@ footer {
 <script src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
 <script src="https://js.squareup.com/v2/paymentform"></script>
 
+
 <script>
+$j(document).ready(function() {
+    $j('.js-example-basic-single').select2();
+});
+$("#amount").keyup(function(){
+    if($("#amount").val() > {{$usddeposit}})
+    {
+        $("#amount").val("");
+        $("#excess_amount").text("Amount must be less than or equal to your current deposited amount");
+        
+    }
+    else
+    {
+        $("#excess_amount").text("");
+    }
+})
     document.addEventListener('DOMContentLoaded', function () {
         // Get the radio buttons and the user container
         const mailDepositRadio = document.getElementById('mail_deposit');
@@ -251,26 +288,37 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Listen for changes in the deposit option dropdown
     depositOption.addEventListener('change', function () {
-        if(depositOption.value == "try_speed")
+        if(depositOption.value == "ZELLE")
+        {
+            $("#email").removeAttr('readonly');
+            $("#try_speed_invoice").css('display','none');
+            $("#EUR").css('display','none');
+            cardModal.style.display = 'none';
+        }
+        else if(depositOption.value == "try_speed")
         {
             $("#try_speed_invoice").css('display','block');
             $("#EUR").css('display','none');
             cardModal.style.display = 'none';
+            $("#email").attr("readonly", "readonly");
         }
         else if(depositOption.value == "fortunefinex")
         {
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','inline-block');
             cardModal.style.display = 'none';
+            $("#email").attr("readonly", "readonly");
         }
-        else if (depositOption.value === 'CARD_new') {
+        else if (depositOption.value === 'CARD') {
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','none');
             cardModal.style.display = 'block';  // Show the card modal if 'Push To Card' is selected
+            $("#email").attr("readonly", "readonly");
         } else {
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','none');
             cardModal.style.display = 'none';  // Hide the card modal if other option is selected
+            $("#email").attr("readonly", "readonly");
         }
     });
 });
@@ -539,7 +587,7 @@ cashAppPay.addEventListener('ontokenization', (event) => {
     {
     // Serialize the form data
     var formData = $(this).serialize();
-
+    console.log(formData);
     // Perform AJAX request to process the deposit via Checkbook
     $.ajax({
         url: "{{ route('process.checkbook', ['id' => $uniqueId]) }}", // Define a new route for Checkbook processing
@@ -555,7 +603,7 @@ cashAppPay.addEventListener('ontokenization', (event) => {
     toastr.success('Payment is successful! Check has been sent to the user\'s email.');
 
     // Redirect to the deposit page
-    window.location.href = 'https://pay.cumbo.tech/dashboard';
+    window.location.href = 'https://paying.cumbo.tech/dashboard';
 } else {
     // If the response is not success, display an error toast
     toastr.error('An error occurred while processing the payment. Please try again.', 'Error');

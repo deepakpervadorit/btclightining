@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class WithdrawalController extends Controller
 {
-    public function index()
+    public function index() 
     {
         $userid = session('staff_id');
         $role = session('staff_role');

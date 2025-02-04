@@ -30,34 +30,37 @@ class DepositController extends Controller
     }
     public function storeDepositAmount(Request $request){
          $data = [
-                  'transaction_id' => $request->transaction_id,
-                  'user_id' => $request->user_id,
-        'paymentId' => $request->paymentId,
-        'status' => $request->status,
-        'transactionStatus' => $request->transactionStatus,
-        'paymentBrand' => $request->paymentBrand,
-        'paymentMode' => $request->paymentMode,
-        'paymentGateway' => $request->gateway,
-        'firstName' => $request->firstName,
-        'lastName' => $request->lastName,
-        'amount' => $request->amount,
-        'currency' => $request->currency,
-        'descriptor' => $request->descriptor,
-        'merchantTransactionId' => $request->merchantTransactionId,
-        'remark' => $request->remark,
-        'tmpl_amount' => $request->tmpl_amount,
-        'tmpl_currency' => $request->tmpl_currency,
-        'checksum' => $request->checksum,
-        'card' => json_encode($request->card),  // Make sure the 'card' is encoded into JSON
-        'eci' => $request->eci,
-        'bankReferenceId' => $request->bankReferenceId,
-        'terminalId' => $request->terminalId,
-        'created_at' => now(), // Optional: if you want to manually set created_at timestamp
-        'updated_at' => now(), // Optional: if you want to manually set updated_at timestamp
+          'transaction_id' => $request->transaction_id,
+          'user_id' => $request->user_id,
+          'server' => implode(',',$request->serverlist),
+          'game_username' => $request->gameusername,
+            'paymentId' => $request->paymentId,
+            'status' => $request->status,
+            'transactionStatus' => $request->transactionStatus,
+            'paymentBrand' => $request->paymentBrand,
+            'paymentMode' => $request->paymentMode,
+            'paymentGateway' => $request->gateway,
+            'firstName' => $request->firstName,
+            'lastName' => $request->lastName,
+            'amount' => $request->amount,
+            'currency' => $request->currency,
+            'descriptor' => $request->descriptor,
+            'merchantTransactionId' => $request->merchantTransactionId,
+            'remark' => $request->remark,
+            'tmpl_amount' => $request->tmpl_amount,
+            'tmpl_currency' => $request->tmpl_currency,
+            'checksum' => $request->checksum,
+            'card' => json_encode($request->card),  // Make sure the 'card' is encoded into JSON
+            'eci' => $request->eci,
+            'bankReferenceId' => $request->bankReferenceId,
+            'terminalId' => $request->terminalId,
+            'created_at' => now(), // Optional: if you want to manually set created_at timestamp
+            'updated_at' => now(), // Optional: if you want to manually set updated_at timestamp
     ];
 
     // Insert the data into the 'deposit_transactions' table
     $deposit_transaction = DB::table('deposit_transactions')->insert($data);
+    // return implode(',',$request->serverlist);
     }
     public function destroy($id)
 {

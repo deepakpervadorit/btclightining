@@ -102,10 +102,11 @@ public function index()
     } else {
         $eurdeposit = round($eurwithdrawal - $eurdeposit, 2);
     }
-    $depositCount = DB::table('deposits')->where('user_id',$userId)->count();
-    $withdrawalCount = DB::table('withdrawals')->where('userid',$userId)->count();
+    $depositCount = DB::table('deposits')->whereIn('user_id',$users)->count();
+    $withdrawalCount = DB::table('withdrawals')->whereIn('userid',$users)->count();
+
     $transactions = $depositCount + $withdrawalCount;
-    $moneyout = DB::table('withdrawals')->where('userid',$userId)->where('status','Paid')->sum('amount');
+    $moneyout = DB::table('withdrawals')->whereIn('userid',$users)->where('status','Paid')->sum('amount');
     // Now both $depositData and $withdrawData hold totals for each week
     // Return the view with all the data
     return view('merchant.dashboard', compact('usercount','encryptmerchantid','chartLabels', 'depositData', 'withdrawData', 'totalDeposit', 'avgDeposit', 'countDeposit', 'topDepositor', 'totalWithdraw', 'avgWithdraw', 'countWithdraw', 'topWithdraw','userId','permissions','roleName','usddeposit','eurdeposit','usdwithdrawal','eurwithdrawal','depositCount','withdrawalCount','transactions','moneyout'));

@@ -76,8 +76,8 @@ padding: 35px 75px !important;">
 
                         <div class="row mb-3">
                             <label for="email" class="col-form-label ">{{ __('Email Address') }}</label>
-
-                            <input type="text"  name="merchantid" value="{{$merchantid}}" hidden>
+                            
+                            
                                 <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
 
                                 @error('email')
@@ -86,6 +86,14 @@ padding: 35px 75px !important;">
                                     </span>
                                 @enderror
                         </div>
+                        @if(isset($merchantid))
+                            <input type="text"  name="merchantid" value="{{$merchantid}}" hidden>
+                        @else
+                        <div class="row mb-3">
+                            <label for="merchantid" class="col-form-label ">{{ __('Merchant ID') }}</label>
+                                <input id="merchantid" type="text" class="form-control" name="merchantid" value="" required>
+                        </div>
+                        @endif
 
                         <div class="row mb-3">
                             <label for="password" class="col-form-label ">{{ __('Password') }}</label>

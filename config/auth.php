@@ -47,6 +47,10 @@ return [
         'driver' => 'eloquent',
         'model' => App\Models\User::class,
     ],
+    'staff' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\Staff::class,
+    ],
 ],
 
     /*
@@ -71,11 +75,10 @@ return [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'staff' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Staff::class,
+        ],
     ],
 
     /*
@@ -101,6 +104,13 @@ return [
         'users' => [
             'provider' => 'users',
             'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        
+        'staff' => [
+            'provider' => 'staff',
+            'table' => 'password_reset_tokens', // Can use the same table
             'expire' => 60,
             'throttle' => 60,
         ],

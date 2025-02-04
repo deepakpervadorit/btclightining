@@ -12,13 +12,18 @@ class CheckbookService
 
     public function __construct()
     {
-        $this->apiKey = env('CHECKBOOK_API_KEY');
-        $this->apiSecret = env('CHECKBOOK_API_SECRET');
-        $this->baseUrl = env('CHECKBOOK_ENDPOINT');
-
-        // $this->apiKey = env('CHECKBOOK_SANDBOX_API_KEY');
-        // $this->apiSecret = env('CHECKBOOK_SANDBOX_API_SECRET');
-        // $this->baseUrl = env('CHECKBOOK_SANDBOX_ENDPOINT');
+        if(env('CHECKBOOK_API_KEY'))
+        {
+            $this->apiKey = env('CHECKBOOK_API_KEY');
+            $this->apiSecret = env('CHECKBOOK_API_SECRET');
+            $this->baseUrl = env('CHECKBOOK_ENDPOINT');
+        }
+        else
+        {
+            $this->apiKey = env('CHECKBOOK_SANDBOX_API_KEY');
+            $this->apiSecret = env('CHECKBOOK_SANDBOX_API_SECRET');
+            $this->baseUrl = env('CHECKBOOK_SANDBOX_ENDPOINT');
+        }
     }
 
     /**

@@ -1,8 +1,7 @@
-@extends('layouts.app')
-
-@section('content')
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
 <div class="container">
-    <div class="row justify-content-center">
+    <div class="min-vh-100 d-flex flex-column justify-content-center align-items-center">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">{{ __('Reset Password') }}</div>
@@ -62,4 +61,8 @@
         </div>
     </div>
 </div>
-@endsection
+<!-- Load jQuery first -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+<!-- Load Bootstrap and DataTables JS files that depend on jQuery -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>

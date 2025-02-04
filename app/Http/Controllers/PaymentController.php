@@ -18,9 +18,11 @@ use Square\Exceptions\ApiException;
 use App\Services\CheckbookService;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use App\Models\Deposit;
+use App\Models\User;
 use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 
 class PaymentController extends Controller
@@ -41,7 +43,11 @@ class PaymentController extends Controller
     {
         $games = DB::table('games')->get();
             $userId = session('staff_id');
-        return view('deposit',compact('games','userId'));
+        $merchant_id = DB::table('users')->where('id',$userId)->pluck('created_by');
+        $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        $merchant_game = explode(',',$merchant_game);
+        $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        return view('deposit',compact('games','userId','merchant_details','merchant_game'));
     }
 
     public function showInvoice($id)
@@ -163,6 +169,8 @@ class PaymentController extends Controller
         ->first();
 
         $deposit = Deposit::create([
+            'server' => $updatedRow->server,
+            'game_username' => $updatedRow->game_username,
             'session_id' => $updatedRow->transaction_id,
             'user_id' => $updatedRow->user_id,
             'amount' => $updatedRow->amount,
@@ -177,9 +185,29 @@ class PaymentController extends Controller
     }
     public function withdrawalForm()
     {
+        $userId = session('staff_id');
+        $usddeposit = DB::table('deposits')->where('user_id',$userId)->where('currency','USD')->where('status','Completed')->sum('amount');
+        $eurdeposit = DB::table('deposits')->where('user_id',$userId)->where('currency','EUR')->where('status','Y')->sum('amount');
+        $usdwithdrawal = DB::table('withdrawals')->where('userid',$userId)->where('currency','USD')->where('status','Paid')->sum('amount');
+        $eurwithdrawal = DB::table('withdrawals')->where('userid',$userId)->where('currency','EUR')->where('status','Paid')->sum('amount');
+        if ($usddeposit > $usdwithdrawal) {
+            $usddeposit = round($usddeposit - $usdwithdrawal, 2);
+        } else {
+            $usddeposit = round($usdwithdrawal - $usddeposit, 2);
+        }
+        if ($eurdeposit > $eurwithdrawal) {
+            $eurdeposit = round($eurdeposit - $eurwithdrawal, 2);
+        } else {
+            $eurdeposit = round($eurwithdrawal - $eurdeposit, 2);
+        }
+        $merchant_id = DB::table('users')->where('id',$userId)->pluck('created_by');
+        $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        $merchant_game = explode(',',$merchant_game);
         $games = DB::table('games')->get();
         $uniqueId = Str::random(10);
-        return view('withdrawal',compact('games','uniqueId'));
+        
+        $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        return view('withdrawal',compact('games','uniqueId','usddeposit','eurdeposit','merchant_details','merchant_game'));
     }
     
     public function withdraw(Request $request)
@@ -203,7 +231,8 @@ class PaymentController extends Controller
                 'currency' => $request->currency,
                 'amount' => $request->amount,
                 'username' => $request->username,
-                'server' => $request->gameserver,
+                'email' => $request->email,
+                'server' => implode(',',$request->gameserver),
                 'game_username' => $request->gameusername,
                 'invoice' => $request->invoice,
                 'created_at' => now(),
@@ -449,7 +478,8 @@ public function makePayment(Request $request)
     try {
         $staffId = session('staff_id');
         // Get the inputs from the request
-        $amount = $request->input('amount') + '0.9';
+        // $amount = $request->input('amount') + '0.9';
+        $amount = $request->input('amount');
         $recipientEmail = $request->input('email');
         $description = $request->input('description');
         $username = $request->input('username');
@@ -473,7 +503,8 @@ public function makePayment(Request $request)
                     'payment_method' => 'Cheque',
                     'amount' => $amount,
                     'username' => $username,
-                    'server' => $request->input('server'),
+                    'email' => $email,
+                    'server' => implode(',',$request->input('server')),
                     'game_username' => $request->input('gameusername'),
                     'created_at' => now(),
                     'updated_at' => now()
@@ -546,9 +577,11 @@ public function makePayment(Request $request)
                 'userid' => $staffId,
                 'status' => 'Unpaid',
                 'payment_method' => 'Individual Deposit',
+                'currency' => 'USD',
                 'amount' => $amount,
                 'username' => $username,
-                'server' => $request->input('server'),
+                'email' => $request->input('email'),
+                'server' => implode(',',$request->input('server')),
                 'game_username' => $request->input('gameusername'),
                 'checkbook_type' => $depositOption,
                 'created_at' => now(),
@@ -671,6 +704,67 @@ public function updateStatus(Request $request, $id)
     {
         $depositOption = $userwithdrawal->checkbook_type;
         $useraccount = DB::table('user_account')->where('payment_method',$depositOption)->where('userid',$userid)->first();
+        if($depositOption == "ZELLE")
+        {
+            // $user = DB::table('users')->where('id',$staffId)->first();
+            $useraccount = DB::table('user_account')->where('payment_method','ZELLE')->where('email',$userwithdrawal->email)->first();
+            if(!$useraccount)
+            {
+                $user = User::create([
+                    'name' => $userwithdrawal->game_username,
+                    'email' => $userwithdrawal->email,
+                    'password' => Hash::make("Kuchnahi021!"), // Hash the password before saving
+                    'role' => 'User',
+                    'created_by' => $userid,
+                ]);
+                
+                DB::table('role_staff')->insert([
+                    'staff_id' => $user->id,
+                    'role_id' => '5',
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $createuser = $this->checkbookService->createUser($user->name);
+                if(!isset($createuser['user_id']))
+                {
+                    DB::table('role_staff')->where('staff_id',$user->id)->delete();
+                    DB::table('users')->where('id',$user->id)->delete();
+                    return redirect()->back()->with('error', 'Zelle account already created with this username try with different one.');
+                }
+                DB::table('checkbook_users')->insert([
+                    'userid' => $user->id,
+                    'user_id' => $createuser['user_id'],
+                    'checkbook_id' => $createuser['id'],
+                    'api_key' => $createuser['key'],
+                    'api_secret_key' => $createuser['secret'],
+                    'created_at' => now(),
+                ]);
+                $zelle = $this->checkbookService->createZelleAccount($user->email, $createuser['key'], $createuser['secret']);
+                $api_id = $zelle['id'];
+                    DB::table('user_account')->insert([
+                    'userid' => $user->id,
+                    'payment_method' => $depositOption,
+                    'api_id' => $api_id,
+                    'user_id' => $createuser['user_id'],
+                    'email' => $userwithdrawal->email,
+                    'created_at' => now(),
+                ]);
+                
+                $api_id = $api_id;
+                $api_key = $createuser['key'];
+                $api_secret = $createuser['secret'];
+                $user_id = $createuser['user_id'];
+                $result = $this->checkbookService->individualDeposit($name, $amount, $userwithdrawal->email, $description, $depositOption,$api_id,$api_key,$api_secret,$user_id);
+                // Update the status to 'Paid'
+                DB::table('withdrawals')
+                ->where('userid', $userid)
+                ->where('checkbook_type', $depositOption)
+                ->update([
+                    'status' => 'Paid',
+                ]);
+            }
+            return redirect()->back()->with('success', 'Status updated to Paid.');
+        }
         $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
         $recipientEmail = $useraccount->email;
         

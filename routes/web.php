@@ -138,20 +138,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 });
-Route::name('admin.')->prefix('admin')->group(function () {
-    Route::get('/merchant/create', [StoreController::class, 'create'])->name('merchant.create');
-    Route::post('/merchant/add', [StoreController::class, 'store'])->name('merchant.add');
-    Route::get('/merchant/list', [StoreController::class, 'index'])->name('merchant.list');
-    Route::get('/merchant/deposits/{id}', [StoreController::class, 'deposits'])->name('merchant.deposits');
-    Route::get('/merchant/withdrawals/{id}', [StoreController::class, 'withdrawals'])->name('merchant.withdrawals');
-    Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
-    Route::get('/fortunefinex-settings', [FortuneFinexController::class, 'index'])->name('fortunefinex.keys');
-    Route::post('/fortunefinex-keys/update', [FortuneFinexController::class, 'updateKeys'])->name('fortunefinex.keys.update');
-    Route::post('/fortunefinex-settings/update', [FortuneFinexController::class, 'update'])->name('fortunefinex.update');
-    Route::get('/tryspeed-settings', [TrySpeedController::class, 'index'])->name('tryspeed.keys');
-    Route::post('/tryspeed-keys/update', [TrySpeedController::class, 'updateKeys'])->name('tryspeed.keys.update');
-    Route::post('/tryspeed-settings/update', [TrySpeedController::class, 'update'])->name('tryspeed.update');
-});
+
 Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['staffAuth'])->group(function () {
    Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
@@ -167,6 +154,21 @@ Route::middleware(['staffAuth'])->group(function () {
         Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
         Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
         Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
+    });
+    
+    Route::name('admin.')->prefix('admin')->group(function () {
+        Route::get('/merchant/create', [StoreController::class, 'create'])->name('merchant.create');
+        Route::post('/merchant/add', [StoreController::class, 'store'])->name('merchant.add');
+        Route::get('/merchant/list', [StoreController::class, 'index'])->name('merchant.list');
+        Route::get('/merchant/deposits/{id}', [StoreController::class, 'deposits'])->name('merchant.deposits');
+        Route::get('/merchant/withdrawals/{id}', [StoreController::class, 'withdrawals'])->name('merchant.withdrawals');
+        Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
+        Route::get('/fortunefinex-settings', [FortuneFinexController::class, 'index'])->name('fortunefinex.keys');
+        Route::post('/fortunefinex-keys/update', [FortuneFinexController::class, 'updateKeys'])->name('fortunefinex.keys.update');
+        Route::post('/fortunefinex-settings/update', [FortuneFinexController::class, 'update'])->name('fortunefinex.update');
+        Route::get('/tryspeed-settings', [TrySpeedController::class, 'index'])->name('tryspeed.keys');
+        Route::post('/tryspeed-keys/update', [TrySpeedController::class, 'updateKeys'])->name('tryspeed.keys.update');
+        Route::post('/tryspeed-settings/update', [TrySpeedController::class, 'update'])->name('tryspeed.update');
     });
 
 
