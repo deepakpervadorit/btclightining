@@ -10,9 +10,10 @@
             <h5>Staff Members List</h5>
         </div>
         <div class="card-body">
-            <table class="table table-striped table-bordered">
+            <table class="table table-striped table-bordered datatable">
                 <thead class="table-dark">
                     <tr>
+                        <th>S.No</th>
                         <th>Name</th>
                         <th>Email</th>
                         <th>Role</th> <!-- Display Role -->
@@ -22,6 +23,7 @@
                 <tbody>
                     @foreach ($staff as $member)
                         <tr>
+                            <td>{{ $member->id }}</td>
                             <td>{{ $member->name }}</td>
                             <td>{{ $member->email }}</td>
                             <td>{{ $member->role_name }}</td> <!-- Display role name from roles table -->
@@ -40,4 +42,40 @@
         </div>
     </div>
 </div>
+@endsection
+@section('scripts')
+<script>
+$('.datatable').DataTable({
+            dom: 'Bfrtip', // Add buttons for export, print, etc.
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+            responsive: true, // Enable responsive features
+            order: [[0, 'asc']], // Default sorting by the first column (ascending)
+            pageLength: 10, // Default number of rows per page
+            language: {
+                search: "Search:", // Customize search label
+                paginate: {
+                    next: 'Next',
+                    previous: 'Previous'
+                }
+            }
+        });
+    @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+    @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+</script>
 @endsection

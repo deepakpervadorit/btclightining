@@ -58,7 +58,9 @@ thead tr th {
                     <tr>
                         <th>ID</th>
                         <th>Method</th>
-                        <th>Username</th>
+                        <!--<th>Username</th>-->
+                        <th>Game Id</th>
+                        <!--<th>Provider</th>-->
                         <th>Amount Paid</th>
                         <th>Currency</th>
                         <th>Status</th>
@@ -69,32 +71,53 @@ thead tr th {
                 <tbody>
                     @foreach($deposits as $deposit)
                     <tr>
-                        <td>{{ $deposit->id }}</td>
                         @php
-                        $user = DB::table('staff')->where('id',$deposit->user_id)->first();
-                        if($user == null){
-                            $user = DB::table('users')->where('id',$deposit->user_id)->first();
+                        $user = DB::table('staff')->where('id', $deposit->user_id)->first();
+                        if(!$user && $deposit->merchant_id) {
+                            $user = DB::table('staff')->where('id', $deposit->merchant_id)->first();
+                        }
+                        if(!$user && $deposit->user_id) {
+                            $user = DB::table('users')->where('id', $deposit->user_id)->first();
+                        }
+                        
+                        $displayName = $user->name ?? 'merchant';
+                        @endphp
+                        
+                        <td>{{ $deposit->id }}</td>
+                        
+                        @if($deposit->payment_method == "Try Speed")
+                        <td>Cashapp Crypto</td>
+                        @else
+                        <td>{{ $deposit->payment_method }}</td>
+                        @endif
+                        
+                        {{--<td>{{ $displayName }}</td>--}}
+                        <td>{{ $deposit->game_id ?? '' }}</td>
+                        
+                        @php
+                        $providers = collect();
+                        if(!empty($deposit->server)) {
+                            $serverIds = explode(',', $deposit->server);
+                            $providers = DB::table('games')->whereIn('id', $serverIds)->get();
                         }
                         @endphp
-                        <td>{{ $deposit->payment_method }}</td>
-                        <td>{{ $user->name }}</td>
+                        
+                        {{--<td>
+                            @foreach($providers as $provider)
+                                {{ $provider->game }}@if(!$loop->last), @endif
+                            @endforeach
+                        </td>--}}
+                        
                         <td>{{ $deposit->amount }}</td>
                         <td>{{ $deposit->currency }}</td>
-                        <td>@if($deposit->status == 'Completed' || $deposit->status == 'Y')
-                        <button class="btn btn-success">Paid</button>
+                        <td>
+                            @if($deposit->status == 'Completed' || $deposit->status == 'Y')
+                                <button class="btn btn-success">Paid</button>
                             @else
-                            <button class="btn btn-danger">UnPaid</button>
+                                <button class="btn btn-danger">UnPaid</button>
                             @endif
                         </td>
                         <td>{{ $deposit->created_at }}</td>
-                        {{-- <td>
-                            <!-- Delete Form -->
-                            <form action="{{ route('deposits.destroy', $deposit->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn text-danger btn-sm" onclick="return confirm('Are you sure you want to delete this deposit?')">Delete</button>
-                            </form>
-                        </td> --}}
                     </tr>
                     @endforeach
                 </tbody>

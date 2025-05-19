@@ -77,6 +77,7 @@ class UserController extends Controller
     $deposit_option = $request->input('deposit_option');
     $name = $request->input('username');
     $email = $request->input('email');
+    dd($request->all());
 
     // Fetch the existing user data
     $existingUser = DB::table('checkbook_users')->where('userid', $staffId)->first();

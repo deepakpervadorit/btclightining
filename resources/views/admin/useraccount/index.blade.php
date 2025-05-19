@@ -4,7 +4,7 @@
       <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet" />
 
 <div class="container mt-4">
-    <h1 class="mb-4">Checkbook Accounts</h1>
+    <h1 class="mb-4">Accounts</h1>
     @if($usercount == '3')
     <a href="{{ route('user.create') }}" class="btn btn-primary mb-3 disabled" >Create New User Member</a>
     @else
@@ -17,7 +17,7 @@
 @endif
     <div class="card">
         <div class="card-header">
-            <h5>Checkbook Account's List</h5>
+            <h5>Account's List</h5>
         </div>
         <div class="card-body">
     <table id="userTable" class="table table-striped table-bordered">
@@ -72,5 +72,25 @@
             "order": [[ 2, "desc" ]] // Order by the first column (index 0) in descending order
         });
     });
+</script>
+@endsection
+@section('scripts')
+<script>
+    @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+    @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
 </script>
 @endsection

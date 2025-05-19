@@ -17,6 +17,7 @@ use Carbon\Carbon;
 
 class LoginController extends Controller
 {
+    private $checkbookService;
     public function __construct(CheckbookService $checkbookService)
     {
         $this->checkbookService = $checkbookService;
@@ -98,9 +99,12 @@ public function login(Request $request)
 
         $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
         ->first();
+    
 
     // Determine if the credentials are valid for staff
     if ($staff && Hash::check($credentials['password'], $staff->password)) {
+        if($role->name != "Superadmin")
+        {
         if ($staff->two_factor_enabled) {
             // Generate a random 6-digit code
             $code = mt_rand(100000, 999999);
@@ -134,6 +138,7 @@ public function login(Request $request)
         $request->session()->regenerate();
 
         return redirect()->intended('/merchant/dashboard')->with('success', 'Logged in successfully as staff.');
+        }
     }
 
     // Determine if the credentials are valid for users
@@ -191,7 +196,6 @@ public function login(Request $request)
 
     public function showRegisterForm($merchantid)
     {
-        $merchantid = Crypt::decrypt($merchantid);
         return view('auth.register',compact('merchantid'));
     }
     public function register(Request $request)
@@ -206,19 +210,24 @@ public function login(Request $request)
         ]);
 
         $createuser = $this->checkbookService->createUser($validated['name']);
+        $merchantid = DB::table('staff')->where('merchant_id', $validated['merchantid'])->value('id');
 
         if (isset($createuser['error'])) {
             // Abort user creation if username is already in use
-            session()->flash('error', 'Username is already in use. Please choose a different name.');
-            abort(400, 'Username already in use.');
+            return redirect()->back()->with('username_error', 'Username is already in use. Please choose a different name.');
+            // session()->flash('error', 'Username is already in use. Please choose a different name.');
+            // abort(400, 'Username already in use.');
         }
-        try {
-            // Try to decrypt the value
-            $merchantid = Crypt::decrypt($validated['merchantid']);
-        } catch (DecryptException $e) {
-            // If decryption fails, assume it's not encrypted and use the original value
-            $merchantid = $validated['merchantid'];
-        }
+        // try {
+        //     // Check if the value is encrypted by attempting to decrypt it
+        //     $merchantid = Crypt::decrypt($validated['merchantid']);
+        // } catch (DecryptException $e) {
+        //     // If decryption fails, assume it's already decrypted
+        //     $merchantid = $validated['merchantid'];
+        // } catch (\Exception $e) {
+        //     // Handle other potential exceptions
+        //     $merchantid = $validated['merchantid'];
+        // }
 
         // Create the user with the validated data and hashed password
         $user = User::create([

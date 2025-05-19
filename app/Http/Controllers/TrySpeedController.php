@@ -62,6 +62,6 @@ class TrySpeedController extends Controller
         $payment_gateway = PaymentGateway::firstOrCreate(['name' => 'trySpeed']);
         $payment_gateway->update(['status' => $status]);
     
-        return back()->with('success', 'TrySpeed status updated successfully!');
+        return back()->with('success', 'Cashapp Crypto status updated successfully!');
     }
 }

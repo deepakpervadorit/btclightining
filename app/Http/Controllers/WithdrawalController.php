@@ -11,10 +11,13 @@ class WithdrawalController extends Controller
     {
         $userid = session('staff_id');
         $role = session('staff_role');
+        $mywithdrawals=[];
         if($role == "Merchant")
         {
             $users = DB::table('users')->where('created_by', $userid)->pluck('id');
-            $deposits = DB::table('withdrawals')->whereIn('userid', $users)->orderBy('created_at', 'asc')->get();
+            $withdrawals = DB::table('withdrawals')->whereIn('userid', $users)->orderBy('created_at', 'asc')->get();
+            $mywithdrawals = DB::table('withdrawals')->where('merchant_id', $userid)->orderBy('created_at', 'asc')->get();
+            $deposits = $withdrawals->merge($mywithdrawals);
         }
         elseif($role == "Superadmin")
         {
@@ -29,7 +32,7 @@ class WithdrawalController extends Controller
     //     $deposits = DB::table('withdrawals')
     // ->orderBy('created_at', 'asc')
     // ->get();
-        return view('admin.withdrawal',compact('deposits'));
+        return view('admin.withdrawal',compact('deposits','mywithdrawals'));
     }
     public function destroy($id)
 {

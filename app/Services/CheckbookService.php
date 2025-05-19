@@ -151,6 +151,7 @@ class CheckbookService
             ])->post($url, [
                 'username' => $email
             ]);
+            
            // Return response as an array or as needed
            return $response->json();
         
@@ -258,7 +259,7 @@ class CheckbookService
         if ($response->successful()) {
             $responseData = $response->json();
             $checkId = $responseData['id'] ?? null;  // Get the check ID from the response
-
+            
             if ($checkId) {
                 
                 // Prepare for the second POST request to deposit the check
@@ -266,7 +267,7 @@ class CheckbookService
                 
                 // Authorization for the second request
                 $depositAuthHeader = $api_key. ':' .$api_secret;
-                
+                // dd($checkId, $depositAuthHeader, $api_id);
                 $depositResponse = Http::withHeaders([
                     'Authorization' => $depositAuthHeader,
                     'Accept' => 'application/json',
@@ -274,6 +275,7 @@ class CheckbookService
                 ])->post($depositUrl, [
                     'account' => $api_id,
                 ]);
+                // dd($depositResponse->body());
                 // Check if the second request was successful
                 if ($depositResponse->successful()) {
                     return $depositResponse->json(); // Return the deposit response
@@ -355,7 +357,7 @@ class CheckbookService
 public function deleteCard($api_key, $api_secret_key, $card_id)
 {
     // Define the endpoint URL for the DELETE request
-    $url = 'https://demo.checkbook.io/v3/account/card/' . $card_id;
+    $url = $this->baseUrl .'account/card/' . $card_id;
 
     // Prepare the Authorization header using API key and secret
     $authHeader = base64_encode($api_key . ':' . $api_secret_key);
@@ -380,17 +382,15 @@ public function deleteCard($api_key, $api_secret_key, $card_id)
 public function deleteZelleAccount($api_key, $api_secret_key, $zelle_id)
 {
     // Define the endpoint URL for the DELETE request
-    $url = 'https://demo.checkbook.io/v3/account/zelle/' . $zelle_id;
+    $url = $this->baseUrl .'account/zelle/' . $zelle_id;
 
     // Construct the Authorization header with API key and secret
     $authHeader = $api_key . ':' . $api_secret_key;
-
     // Make the DELETE request to the API
     $response = Http::withHeaders([
         'Authorization' => $authHeader,
         'Accept' => 'application/json',
     ])->delete($url);
-
     // Check if the request was successful
     if ($response->successful()) {
         return $response->json(); // Return the successful response as JSON

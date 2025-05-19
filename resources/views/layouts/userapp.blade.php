@@ -25,54 +25,33 @@
 <body>
     <div id="app">
         <header>
-            <nav class="navbar navbar-expand-lg navbar-light bg-primary">
-                <div class="container">
-                    <a class="navbar-brand" href="{{ url('/') }}">Cumbo</a>
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                        <ul class="navbar-nav m-auto mb-2 mb-lg-0">
-                            <!--<li class="nav-item">-->
-                            <!--    <a class="nav-link active" aria-current="page" href="#">Home</a>-->
-                            <!--</li>-->
-                            <!--<li class="nav-item">-->
-                            <!--    <a class="nav-link" href="#">Link</a>-->
-                            <!--</li>-->
-                            <!--<li class="nav-item dropdown">-->
-                            <!--    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">-->
-                            <!--    Dropdown-->
-                            <!--    </a>-->
-                            <!--    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">-->
-                            <!--        <li><a class="dropdown-item" href="#">Action</a></li>-->
-                            <!--        <li><a class="dropdown-item" href="#">Another action</a></li>-->
-                            <!--        <li>-->
-                            <!--            <hr class="dropdown-divider">-->
-                            <!--        </li>-->
-                            <!--        <li><a class="dropdown-item" href="#">Something else here</a></li>-->
-                            <!--    </ul>-->
-                            <!--</li>-->
-                            <!--<li class="nav-item">-->
-                            <!--    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>-->
-                            <!--</li>-->
-                        </ul>
-                        @guest
+  <nav class="navbar">
+    <a class="navbar-brand" href="#"><img src="{{asset('assets/home_assets/Logo (1) (1).png')}}" height="70"></a>
+    <ul class="navbar-nav">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about-us">About</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li>
+      @guest
                             @if (Route::has('login'))
-                                <a class="btn btn-warning btn-sm" href="{{ route('login') }}">{{ __('Login') }}</a>
+                                <a class="btn-login" href="{{ route('login') }}">{{ __('Login') }}</a>
                             @endif
                              @if (Route::has('register'))
-                                <a class="btn btn-outline-warning btn-sm ms-2" href="{{ route('register') }}">{{ __('Register') }}</a>
+                                <a class="btn btn-outline-warning btn-md ms-2" href="{{ route('register') }}">{{ __('Register') }}</a>
                             @endif
                         @endguest
-                    </div>
-                </div>
-            </nav>
-        </header>
+                        </li>
+    </ul>
+  </nav>
+</header>
 
         <main>
             @yield('content')
         </main>
-        <img src="{{asset('assets/img/background.png')}}" width="100%" >
+        @if(Route::is('home'))
+            <!--<img src="{{ asset('assets/img/background.png') }}" width="100%">-->
+        @endif
         <!--<footer>-->
         <!--    <div class="container-fluid">-->
         <!--        <div class="px-lg-3">-->

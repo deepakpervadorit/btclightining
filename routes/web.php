@@ -43,17 +43,27 @@ use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
  // 2FA Verification Routes
     Route::get('/2fa/verify', [TwoFactorController::class, 'showVerify'])->name('2fa.verify');
     Route::post('/2fa/verify', [TwoFactorController::class, 'verify']);
 // Deposit and Payment Form
     Route::get('/deposit/form', [PaymentController::class, 'showForm'])
         ->name('show.deposit.form');
+    Route::get('/{merchantid}/deposit/form', [PaymentController::class, 'showMerchantDepositForm'])
+        ->name('show.merchant.deposit.form');
+    Route::get('/{merchantid}/deposit/game-id', [PaymentController::class, 'showMerchantDepositstep2'])
+        ->name('show.merchant.deposit.step2');
+    Route::post('/{merchantid}/deposit', [PaymentController::class, 'showMerchantDepositstep3'])
+        ->name('show.merchant.deposit.step3');
     Route::get('/deposit/invoice/{id}', [PaymentController::class, 'showInvoice'])
+    ->name('show.deposit.invoice');
+    Route::get('/merchant/deposit/invoice/{id}', [PaymentController::class, 'showMerchantInvoice'])
     ->name('show.deposit.invoice');
 
         // Withdrawal Form
+        Route::get('/{merchantid}/withdrawal/form', [PaymentController::class, 'MerchantwithdrawalForm'])
+        ->name('show.withdrawal.form');
         Route::get('/withdrawal/form', [PaymentController::class, 'withdrawalForm'])
         ->name('show.withdrawal.form');
     Route::get('/payments', [PaymentController::class, 'payments'])
@@ -61,6 +71,7 @@ Route::get('/', function () {
     Route::post('/webhook', [PaymentController::class, 'handleWebhook'])
         ->name('webhook');
         Route::post('/withdrawal/{id}/update-status', [PaymentController::class, 'updateStatus'])->name('withdrawal.updateStatus');
+        Route::post('/merchant/withdrawal/{id}/update-status', [PaymentController::class, 'MerchantupdateStatus'])->name('merchant.withdrawal.updateStatus');
         Route::put('/withdrawal/reject/{id}', [PaymentController::class, 'rejectStatus'])->name('withdrawal.rejectStatus');
 
         // Withdrawal Link
@@ -107,6 +118,7 @@ Route::get('/unauthorized', function () {
 // Permissions CRUD
 Route::resource('permissions', PermissionsController::class);
 Route::post('/generate-invoice-qr', [PaymentController::class, 'generateInvoiceQr']);
+Route::post('/merchant/generate-invoice-qr', [PaymentController::class, 'MerchantgenerateInvoiceQr']);
 Route::get('/check-payment-status', [PaymentController::class, 'checkPaymentStatus']);
 // Route::get('/deposit/form', [PaymentController::class, 'showForm'])->name('show.deposit.form');
 // Route::get('/payments', [PaymentController::class, 'payments'])->name('show.payments');
@@ -120,6 +132,7 @@ Route::post('/thankyou', [thankyouController::class, 'thankyou'])
      Route::post('/notify-payment', [NotifyPaymentController::class, 'notify'])->name('notify');
 Route::post('/payout-notify-payment', [NotifyPaymentController::class, 'PayoutNotify'])->name('notify.payout');
 Route::get('/update_transaction/{transactionid}', [PaymentController::class, 'updateDepositTransaction']);
+Route::get('/merchant/update_transaction/{transactionid}', [PaymentController::class, 'updateMerchantDepositTransaction']);
 
 // Route::post('/stripe/webhook', [StripeWebhookController::class, 'handleWebhook']);
 Route::get('/{merchantid}/register', [LoginController::class, 'showRegisterForm'])
@@ -154,12 +167,16 @@ Route::middleware(['staffAuth'])->group(function () {
         Route::get('/2fa', [TwoFactorController::class, 'show'])->name('2fa.show');
         Route::post('/2fa/enable', [TwoFactorController::class, 'enable'])->name('2fa.enable');
         Route::post('/2fa/disable', [TwoFactorController::class, 'disable'])->name('2fa.disable');
+        Route::get('/profile', [MerchantDashboardController::class, 'profile'])->name('profile');
+        Route::post('/profile/{id}', [MerchantDashboardController::class, 'updateprofile'])->name('update.profile');
     });
     
     Route::name('admin.')->prefix('admin')->group(function () {
         Route::get('/merchant/create', [StoreController::class, 'create'])->name('merchant.create');
         Route::post('/merchant/add', [StoreController::class, 'store'])->name('merchant.add');
         Route::get('/merchant/list', [StoreController::class, 'index'])->name('merchant.list');
+        Route::get('/merchant/edit/{id}', [StoreController::class, 'edit'])->name('merchant.edit');
+        Route::post('/merchant/update/{id}', [StoreController::class, 'update'])->name('merchant.update');
         Route::get('/merchant/deposits/{id}', [StoreController::class, 'deposits'])->name('merchant.deposits');
         Route::get('/merchant/withdrawals/{id}', [StoreController::class, 'withdrawals'])->name('merchant.withdrawals');
         Route::get('/logout', [AdminLoginController::class, 'logout'])->name('logout');
@@ -169,7 +186,13 @@ Route::middleware(['staffAuth'])->group(function () {
         Route::get('/tryspeed-settings', [TrySpeedController::class, 'index'])->name('tryspeed.keys');
         Route::post('/tryspeed-keys/update', [TrySpeedController::class, 'updateKeys'])->name('tryspeed.keys.update');
         Route::post('/tryspeed-settings/update', [TrySpeedController::class, 'update'])->name('tryspeed.update');
+        Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
+        Route::post('/profile/{id}', [DashboardController::class, 'updateprofile'])->name('update.profile');
     });
+    
+    
+    Route::get('/profile', [DashboardController::class, 'userprofile'])->name('profile');
+    Route::post('/profile/{id}', [DashboardController::class, 'updateuserprofile'])->name('update.profile');
 
 
     // Dashboard
@@ -273,3 +296,6 @@ Route::middleware(['staffAuth'])->group(function () {
 
     });
 });
+Route::post('/merchant/store', [DepositController::class, 'merchantDepositAmount'])->name('deposit.store.amount');
+Route::post('/merchant-withdraw', [PaymentController::class, 'merchantwithdraw'])
+        ->name('merchant.withdraw');

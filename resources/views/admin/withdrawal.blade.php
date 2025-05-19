@@ -78,9 +78,10 @@ use Illuminate\Support\Facades\DB;
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Provider</th>
+                        <!--<th>Provider</th>-->
                         <th>Method</th>
-                        <th>Username</th>
+                        <!--<th>Username</th>-->
+                        <th>Game Id</th>
                         <th>Amount Paid</th>
                         <!--<th>Fee</th>-->
                         <!--<th>Load</th>-->
@@ -98,15 +99,20 @@ use Illuminate\Support\Facades\DB;
                         $providers = DB::table('games')->whereIn('id',$serverIds)->get();
                         
                         @endphp
-                        <td>
+                        {{--<td>
                             @if($providers)
                                 @foreach($providers as $provider)
                                     {{$provider->game}},
                                 @endforeach
                             @endif
-                        </td>
+                        </td>--}}
+                        @if($deposit->payment_method == "Try Speed")
+                        <td>Cashapp Crypto</td>
+                        @else
                         <td>{{ $deposit->payment_method }}</td>
-                        <td>{{ $deposit->username }}</td>
+                        @endif
+                        {{--<td>{{ $deposit->username }}</td>--}}
+                        <td>{{ $deposit->game_id }}</td>
                         <td>{{ $deposit->amount }}</td>
                         <!--<td>{{ $deposit->payment_method }}</td>-->
                         <!--<td>{{ $deposit->payment_method }}</td>-->
@@ -117,10 +123,17 @@ use Illuminate\Support\Facades\DB;
 <button class="btn btn-danger" onsubmit="return confirmSubmission(event);" disabled>Rejected</button>
 @elseif($deposit->status == 'Unpaid')
     @if($roleName == "Merchant")
+        @if($deposit->merchant_id != "" || $deposit->merchant_id != null)
+        <form method="POST" action="{{ route('merchant.withdrawal.updateStatus', $deposit->id) }}" style="display:inline;">
+            @csrf
+            <button type="submit" class="btn btn-warning me-3">Pay</button>
+        </form>
+        @else
         <form method="POST" action="{{ route('withdrawal.updateStatus', $deposit->id) }}" style="display:inline;">
             @csrf
             <button type="submit" class="btn btn-warning me-3">Pay</button>
         </form>
+        @endif
         <form method="POST" action="{{ route('withdrawal.rejectStatus', $deposit->id) }}" style="display:inline;" onsubmit="return confirmSubmission(event);">
             @csrf
             @method('PUT')

@@ -1,0 +1,31 @@
+// Home Page Counter
+$(document).ready(function() {
+
+    let count = 0;
+    let count1 = 0;
+    let count2 = 0;
+    const interval1 = setInterval(function() {
+        if (count < 1000) {
+            count++;
+            $('.counter').text('$' + count);
+        } else {
+            clearInterval(interval1);
+        }
+    }, 10);
+    const interval2 = setInterval(function() {
+        if (count1 < 1500) {
+            count1++;
+            $('.counter1').text(count1 + " + ");
+        } else {
+            clearInterval(interval2);
+        }
+    }, 10);
+    const interval3 = setInterval(function() {
+        if (count2 < 1.2) {
+            count2++;
+            $('.counter2').text(count2 + " Seconds ");
+        } else {
+            clearInterval(interval3);
+        }
+    }, 100);
+});

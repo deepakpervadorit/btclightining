@@ -36,8 +36,8 @@
         <h2>Dashboard</h2>
     </div>
 </div>
-<div class="row mb-2 gap-3">
-    <div class="col-md-12">
+<div class="row mb-2">
+    <div class="col-md-6">
         <div class="card">
            <div class="card-body">
                 <h5 class="card-title">Your Encrypted Merchant ID</h5>
@@ -46,12 +46,35 @@
            </div>
         </div>
     </div>
-    <div class="col-md-12">
+     <div class="col-md-6">
         <div class="card">
            <div class="card-body">
-                <h5 class="card-title">User Registeration Link</h5>
-                <input class="form-control" type="text" value="{{env('APP_URL')}}/{{$encryptmerchantid}}/register" id="depositLink" readonly>
-                <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('depositLink')">Copy</a>
+                <h5 class="card-title">Deposit Link</h5>
+                <input class="form-control" type="text" value="{{env('APP_URL')}}/{{$encryptmerchantid}}/deposit/game-id" id="depositlink" readonly>
+                <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('depositlink')">Copy</a>
+           </div>
+        </div>
+    </div>
+    <!--<div class="col-md-6">-->
+    <!--    <div class="card">-->
+    <!--       <div class="card-body">-->
+    <!--            <h5 class="card-title">Withdrawal Link</h5>-->
+    <!--            <input class="form-control" type="text" value="{{env('APP_URL')}}/{{$encryptmerchantid}}/deposit/form" id="depositLink" readonly>-->
+    <!--            <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('depositLink')">Copy</a>-->
+    <!--       </div>-->
+    <!--    </div>-->
+    <!--</div>-->
+
+</div>
+
+<div class="row mb-2">
+   
+    <div class="col-md-6">
+        <div class="card">
+           <div class="card-body">
+                <h5 class="card-title">Withdraw Link</h5>
+                <input class="form-control" type="text" value="{{env('APP_URL')}}/{{$encryptmerchantid}}/deposit/form" id="withdrawalLink" readonly>
+                <a class="btn btn-primary mt-2" href="javascript:void(0);" onclick="copyToClipboard('withdrawalLink')">Copy</a>
            </div>
         </div>
     </div>

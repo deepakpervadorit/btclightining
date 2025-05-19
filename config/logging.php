@@ -32,8 +32,11 @@ return [
     */
 
     'deprecations' => [
-        'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'),
-        'trace' => false,
+        //'channel' => env('LOG_DEPRECATIONS_CHANNEL', 'null'),
+        //'trace' => false,
+        'driver' => 'daily',
+        'path' => storage_path('logs/deprecations.log'),
+        'level' => 'warning',
     ],
 
     /*

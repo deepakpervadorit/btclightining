@@ -8,6 +8,9 @@
     <!-- Add Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/buttons/2.2.2/css/buttons.dataTables.min.css">
     <style>
 
 
@@ -245,7 +248,7 @@ a.navbar-brand.text-white.mb-4 {
                         <li><a class="dropdown-item" href="{{ route('admin.square.keys') }}">Square</a></li>
                         <li><a class="dropdown-item" href="{{ route('admin.checkbook.keys') }}">Checkbook</a></li>
                         <li><a class="dropdown-item" href="{{ route('admin.fortunefinex.keys') }}">Fortune Finex</a></li>
-                        <li><a class="dropdown-item" href="{{ route('admin.tryspeed.keys') }}">Try Speed</a></li>
+                        <li><a class="dropdown-item" href="{{ route('admin.tryspeed.keys') }}">Cashapp Crypto</a></li>
                     </ul>
                 </li>
             @endif
@@ -327,13 +330,19 @@ a.navbar-brand.text-white.mb-4 {
     <div class="profile-dropdown">
         <!-- Profile Name with Dropdown Icon -->
         <div id="profileDropdownBtn" class="d-flex align-items-center" style="cursor: pointer;">
-            <img src="https://via.placeholder.com/40" alt="Profile" />
-            <span class="ms-2">{{$roleName}}</span>
+            <!--<img src="https://via.placeholder.com/40" alt="Profile" />-->
+            <span class="ms-2">{{$roleName == "" ? session('staff_name') : $roleName}}</span>
             <i class="fas fa-chevron-down ms-2"></i> <!-- Dropdown Icon -->
         </div>
         <!-- Dropdown Menu -->
         <ul class="profile-dropdown-menu list-unstyled shadow-sm bg-white rounded">
-            <li><a href="#" class="dropdown-item">View Profile</a></li>
+            @if($roleName == "Merchant")
+            <li><a href="{{route('merchant.profile')}}" class="dropdown-item">View Profile</a></li>
+            @elseif($roleName == "Superadmin")
+            <li><a href="{{route('admin.profile')}}" class="dropdown-item">View Profile</a></li>
+            @else
+            <li><a href="{{route('profile')}}" class="dropdown-item">View Profile</a></li>
+            @endif
             @if($roleName == "Merchant")
             <li><a href="{{ route('logout') }}" class="dropdown-item">Logout</a></li>
             @elseif($roleName == "")
@@ -357,6 +366,14 @@ a.navbar-brand.text-white.mb-4 {
 
     <!-- Add Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- DataTables JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <!-- DataTables Buttons JS -->
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/dataTables.buttons.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
     <script>
     // Select elements
 const sidebar = document.getElementById('sidebar');

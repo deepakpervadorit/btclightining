@@ -2,3 +2,11 @@
 Stack trace:
 #0 {main}
   thrown in /home/cumboqbo/pay.cumbo.tech/config/database.php on line 18
+[13-Feb-2025 20:10:40 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/cumbotech123/paying.cumbo.tech/config/cache.php:18
+Stack trace:
+#0 {main}
+  thrown in /home/cumbotech123/paying.cumbo.tech/config/cache.php on line 18
+[04-Apr-2025 21:59:35 UTC] PHP Fatal error:  Uncaught Error: Call to undefined function env() in /home/cumbotech123/paying.cumbo.tech/config/app.php:19
+Stack trace:
+#0 {main}
+  thrown in /home/cumbotech123/paying.cumbo.tech/config/app.php on line 19

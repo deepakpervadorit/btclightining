@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Deposit;
+use App\Mail\DepositMail;
+use Illuminate\Support\Facades\Mail;
 
 class thankyouController extends Controller{
     public function thankyou(Request $request) {
@@ -67,8 +69,8 @@ class thankyouController extends Controller{
                         'payment_method' => $updatedRow->paymentGateway,
                         'currency' => $updatedRow->currency,
                     ]);
-
-
+                    $member = DB::table('users')->where('id', $updatedRow->user_id)->first();
+                    Mail::to($member->email)->send(new DepositMail($member,$updatedRow->amount));
                         // $depositTransaction = new DepositTransaction();
                         // $depositTransaction->transaction_id = $request->merchantTransactionId;
                         // // $depositTransaction->user_id = auth()->user()->id;

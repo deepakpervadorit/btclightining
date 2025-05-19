@@ -66,6 +66,9 @@ padding: 35px 75px !important;">
        name="name"
        required
        pattern="^[A-Za-z0-9]*$">
+       @if (session('username_error'))
+       <span class="text-danger">{{ session('username_error') }}</span>
+       @endif
 
                                 @error('name')
                                     <span class="invalid-feedback" role="alert">
@@ -112,6 +115,7 @@ padding: 35px 75px !important;">
 
                                 <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
                         </div>
+                        <span style="float:left;"><small><a href="{{route('login')}}">Already have an account? Login</a></small></span>
 
                         <div class="row mb-0">
                             <div class="col-md-2 offset-md-10">

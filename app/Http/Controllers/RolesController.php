@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Role;
 use App\Models\Permission;
+use Illuminate\Support\Facades\DB;
+
 
 class RolesController extends Controller
 {
@@ -24,7 +26,7 @@ class RolesController extends Controller
     // Show the form for creating a new role
     public function create()
     {
-        $permissions = Permission::all();
+        $permissions = DB::table('permissions')->get();
         return view('admin.roles.create', compact('permissions'));
     }
 

@@ -57,7 +57,7 @@ class UserController extends Controller
     // Store a newly created user member in storage
     public function store(Request $request)
     {
-
+    
     $staffId = session('staff_id'); // Retrieves 'staff_id' from the session
     $deposit_option = $request->input('deposit_option');
     $name = $request->input('username');
@@ -98,8 +98,13 @@ class UserController extends Controller
     }*/
     $checkbookUser = DB::table('user_account')->where('userid', $staffId)->where('payment_method',$deposit_option)->first();
     if (!empty($checkbookUser->payment_method) && $deposit_option == $checkbookUser->payment_method) {
-    return redirect()->back()->with('danger', $deposit_option . ' Payment Method is Already Used!');
-}
+        return redirect()->back()->with('danger', $deposit_option . ' Payment Method is Already Used!');
+    }
+    
+    $checkbookUsercheck = DB::table('user_account')->where('email', $email)->where('payment_method',$deposit_option)->first();
+    if (!empty($checkbookUsercheck)) {
+        return redirect()->back()->with('danger', $deposit_option . ' Email or Phone already in use!');
+    }
 
 
     // Successfully created user, now get API keys
@@ -110,6 +115,10 @@ class UserController extends Controller
     if($deposit_option == 'ZELLE'){
         $zelle = $this->checkbookService->createZelleAccount($email, $api_key, $api_secret);
         // dd($zelle);
+        if(!isset($zelle['id']))
+        {
+            return redirect()->route('user.checkbook_usersbyid')->with('error', 'Email or phone invalid');
+        }
         $api_id = $zelle['id'];
     } else if($deposit_option == 'CARD'){
         $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
@@ -212,6 +221,7 @@ class UserController extends Controller
         $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
         $api_key = $checkbookuser->api_key;
         $api_secret_key = $checkbookuser->api_secret_key;
+        // dd($api_key, $api_secret_key, $api_id);
         DB::table('user_account')->where('id', $id)->where('payment_method',$payment_method)->delete();
     if($payment_method == 'ZELLE'){
         $zelle_id = $api_id;

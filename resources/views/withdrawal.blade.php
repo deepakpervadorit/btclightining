@@ -61,13 +61,11 @@ footer {
                                 @csrf
                                 <div class="mb-3">
                                     <label for="server" class="form-label">Server Provider</label>
-                                    <select class="form-select js-example-basic-single" id="server" name="server[]" multiple required>
-                                        <option value="" disabled>Select a server provider</option>
+                                    <select class="form-select" id="server" name="server" required>
+                                        <option value="" selected disabled>Select a server provider</option>
                                         
                                         @foreach($games as $key => $game)
                                         @if(in_array($game->id, $merchant_game))
-                                            <option value="{{ $game->id }}" selected>{{ $game->game }}</option>
-                                        @else
                                             <option value="{{ $game->id }}">{{ $game->game }}</option>
                                         @endif
                                         @endforeach
@@ -118,57 +116,108 @@ footer {
             @endif
             @endif
             @if ($merchant_details && strpos($merchant_details->gateways, 'tryspeed') !== false)
-            <option value="try_speed">Try Speed</option>
+            <option value="try_speed">Cashapp Crypto</option>
             @endif
             @if ($merchant_details && strpos($merchant_details->gateways, 'fortunefinex') !== false)
             <option value="fortunefinex">FortuneFinex</option>
             @endif
             </select>
+            <span id="account_error"></span>
             
-            
+    @php
+            $staffId = session('staff_id');
+            $user_card_account = DB::table('user_account')->where('userid',$staffId)->where('payment_method','CARD')->first();
+
+            @endphp
+            @if($user_card_account)
     <!-- Card Modal (Address and Card Details) -->
     <div id="cardModal" style="display: none;">
         <!-- Address Line 1 -->
         <div class="mb-3">
             <label for="line_1" class="form-label">Address Line 1</label>
-            <input type="text" class="form-control" id="line_1" name="line_1" value="Keeley Flat">
+            <input type="text" class="form-control" id="line_1" name="line_1" value="{{$user_card_account->line_1}}">
         </div>
         <!-- City -->
         <div class="mb-3">
             <label for="city" class="form-label">City</label>
-            <input type="text" class="form-control" id="city" name="city" value="Solonview">
+            <input type="text" class="form-control" id="city" name="city" value="{{$user_card_account->city}}">
         </div>
         <!-- State -->
         <div class="mb-3">
             <label for="state" class="form-label">State</label>
-            <input type="text" class="form-control" id="state" name="state" value="District of Columbia">
+            <input type="text" class="form-control" id="state" name="state" value="{{$user_card_account->state}}">
         </div>
         <!-- Country -->
         <div class="mb-3">
             <label for="country" class="form-label">Country</label>
-            <input type="text" class="form-control" id="country" name="country" value="United States">
+            <input type="text" class="form-control" id="country" name="country" value="{{$user_card_account->country}}">
         </div>
         <!-- Zip Code -->
         <div class="mb-3">
             <label for="zip" class="form-label">Zip Code</label>
-            <input type="text" class="form-control" id="zip" name="zip" value="47942">
+            <input type="text" class="form-control" id="zip" name="zip" value="{{$user_card_account->zip_code}}">
         </div>
         <!-- Card Number -->
         <div class="mb-3">
             <label for="card_number" class="form-label">Card Number</label>
-            <input type="text" class="form-control" id="card_number" name="card_number" value="4222422242224222">
+            <input type="text" class="form-control" id="card_number" name="card_number" value="{{$user_card_account->card_number}}">
         </div>
         <!-- CVV -->
         <div class="mb-3">
             <label for="cvv" class="form-label">CVV</label>
-            <input type="text" class="form-control" id="cvv" name="cvv" value="123">
+            <input type="text" class="form-control" id="cvv" name="cvv" value="{{$user_card_account->cvv}}">
         </div>
         <!-- Expiration Date -->
         <div class="mb-3">
             <label for="expiration_date" class="form-label">Expiration Date</label>
-            <input type="month" class="form-control" id="expiration_date" name="expiration_date" value="2026-12">
+            <input type="month" class="form-control" id="expiration_date" name="expiration_date" value="{{$user_card_account->expiration_date}}">
         </div>
     </div>
+    @else
+    <div id="cardModal" style="display: none;">
+        <!-- Address Line 1 -->
+        <div class="mb-3">
+            <label for="line_1" class="form-label">Address Line 1</label>
+            <input type="text" class="form-control" id="line_1" name="line_1" value="">
+        </div>
+        <!-- City -->
+        <div class="mb-3">
+            <label for="city" class="form-label">City</label>
+            <input type="text" class="form-control" id="city" name="city" value="">
+        </div>
+        <!-- State -->
+        <div class="mb-3">
+            <label for="state" class="form-label">State</label>
+            <input type="text" class="form-control" id="state" name="state" value="">
+        </div>
+        <!-- Country -->
+        <div class="mb-3">
+            <label for="country" class="form-label">Country</label>
+            <input type="text" class="form-control" id="country" name="country" value="">
+        </div>
+        <!-- Zip Code -->
+        <div class="mb-3">
+            <label for="zip" class="form-label">Zip Code</label>
+            <input type="text" class="form-control" id="zip" name="zip" value="">
+        </div>
+        <!-- Card Number -->
+        <div class="mb-3">
+            <label for="card_number" class="form-label">Card Number</label>
+            <input type="text" class="form-control" id="card_number" name="card_number" value="">
+        </div>
+        <!-- CVV -->
+        <div class="mb-3">
+            <label for="cvv" class="form-label">CVV</label>
+            <input type="text" class="form-control" id="cvv" name="cvv" value="">
+        </div>
+        <!-- Expiration Date -->
+        <div class="mb-3">
+            <label for="expiration_date" class="form-label">Expiration Date</label>
+            <input type="month" class="form-control" id="expiration_date" name="expiration_date" 
+                   value="{{ isset($user_card_account->expiration_date) ? $user_card_account->expiration_date : '' }}">
+        </div>
+    </div>
+    @endif
         <input type="hidden" name="api_id" id="api-id-input">
         <input type="hidden" name="api_key" id="api-key-input">
         <input type="hidden" name="api_secret" id="api-secret-input">
@@ -224,18 +273,18 @@ footer {
 $j(document).ready(function() {
     $j('.js-example-basic-single').select2();
 });
-$("#amount").keyup(function(){
-    if($("#amount").val() > {{$usddeposit}})
-    {
-        $("#amount").val("");
-        $("#excess_amount").text("Amount must be less than or equal to your current deposited amount");
+// $("#amount").keyup(function(){
+//     if($("#amount").val() > {{$usddeposit}})
+//     {
+//         $("#amount").val("");
+//         $("#excess_amount").text("Amount must be less than or equal to your current deposited amount");
         
-    }
-    else
-    {
-        $("#excess_amount").text("");
-    }
-})
+//     }
+//     else
+//     {
+//         $("#excess_amount").text("");
+//     }
+// })
     document.addEventListener('DOMContentLoaded', function () {
         // Get the radio buttons and the user container
         const mailDepositRadio = document.getElementById('mail_deposit');
@@ -288,8 +337,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Listen for changes in the deposit option dropdown
     depositOption.addEventListener('change', function () {
-        if(depositOption.value == "ZELLE")
+        let accountErrorSpan = document.getElementById("account_error");
+        if(depositOption.value == "ZELLE_new" || depositOption.value == "CARD_new" || depositOption.value == "VCC_new")
         {
+            let anchor = document.createElement("a");
+            anchor.href = "/user/create";
+            anchor.textContent = "You don't have this account please create it";
+            anchor.style.color = "blue"; // Optional styling
+            anchor.style.textDecoration = "underline"; 
+
+            // Clear existing content and append the anchor inside the span
+            accountErrorSpan.innerHTML = "";
+            accountErrorSpan.appendChild(anchor);
+        }
+        else if(depositOption.value == "ZELLE")
+        {
+            accountErrorSpan.innerHTML = "";
             $("#email").removeAttr('readonly');
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','none');
@@ -297,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else if(depositOption.value == "try_speed")
         {
+            accountErrorSpan.innerHTML = "";
             $("#try_speed_invoice").css('display','block');
             $("#EUR").css('display','none');
             cardModal.style.display = 'none';
@@ -304,17 +368,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         else if(depositOption.value == "fortunefinex")
         {
+            accountErrorSpan.innerHTML = "";
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','inline-block');
             cardModal.style.display = 'none';
             $("#email").attr("readonly", "readonly");
         }
         else if (depositOption.value === 'CARD') {
+            accountErrorSpan.innerHTML = "";
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','none');
             cardModal.style.display = 'block';  // Show the card modal if 'Push To Card' is selected
             $("#email").attr("readonly", "readonly");
         } else {
+            accountErrorSpan.innerHTML = "";
             $("#try_speed_invoice").css('display','none');
             $("#EUR").css('display','none');
             cardModal.style.display = 'none';  // Hide the card modal if other option is selected

@@ -44,6 +44,11 @@
                                     <label for="name" class="form-label">Game Name</label>
                                     <input type="text" class="form-control" id="name" name="name" required>
                                 </div>
+                                
+                                <div class="mb-3">
+                                    <label for="url" class="form-label">Game Url</label>
+                                    <input type="url" class="form-control" id="url" name="url" required>
+                                </div>
                 
                                 <div class="mb-3">
                                     <label for="status" class="form-label">Status</label>
@@ -82,6 +87,10 @@
                                     <input type="text" class="form-control" id="editName" name="name" required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="editUrl" class="form-label">Game URL</label>
+                                    <input type="url" class="form-control" id="editUrl" name="url" required>
+                                </div>
+                                <div class="mb-3">
                                     <label for="editStatus" class="form-label">Status</label>
                                     <select class="form-select" id="editStatus" name="status">
                                         <option value="active">Active</option>
@@ -108,20 +117,20 @@
                     </tr>
                 </thead>
                 <tbody>
-                   @foreach($games as $game)
-<tr>
-    <td>{{ $game->game }}</td>
-    <td>{{ $game->status }}</td>
-    <td>
-        <button class="btn btn-sm text-primary" onclick="editGame({{ json_encode($game) }})">Edit</button>
-        <form method="post" action="{{ route('deletegame', $game->id) }}" style="display:inline;">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm text-danger">Delete</button>
-        </form>
-    </td>
-</tr>
-@endforeach
+                    @foreach($games as $game)
+                        <tr>
+                            <td><a href="{{ $game->url ?? '#' }}">{{ $game->game }}</a></td>
+                            <td>{{ $game->status }}</td>
+                            <td>
+                                <button class="btn btn-sm text-primary" onclick="editGame({{ json_encode($game) }})">Edit</button>
+                                <form method="post" action="{{ route('deletegame', $game->id) }}" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm text-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    @endforeach
                 </tbody>
             </table>
         </div>
@@ -151,3 +160,23 @@
         $('#editGameModal').modal('show');
     }
 </script>
+@section('scripts')
+<script>
+    @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+    @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+</script>
+@endsection

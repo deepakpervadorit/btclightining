@@ -53,6 +53,9 @@
 <!-- Load Bootstrap and DataTables JS files that depend on jQuery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Load Pusher -->
+<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 <script type="text/javascript">
     function copyToClipboard(elementId) {
       const copyText = document.getElementById(elementId);
@@ -85,5 +88,27 @@
         },
     });
 }, 5000);
+
+    // ✅ Pusher Integration for Real-Time Updates
+    // Pusher.logToConsole = true; // Remove this in production
+
+    // var pusher = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
+    //     cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
+    //     encrypted: true
+    // });
+
+    // var channel = pusher.subscribe('payment-channel');
+
+    // channel.bind('payment-success', function(data) {
+    //     clearInterval(intervalId); // Stop polling since we got real-time event
+    //     Swal.fire({
+    //         title: "Payment completed",
+    //         text: "Your payment has been successfully received!",
+    //         icon: "success"
+    //     }).then(() => {
+    //         window.location.href = "/update_transaction/{{ $invoice->invoice_id }}";
+    //     });
+    // });
+    
 </script>
 

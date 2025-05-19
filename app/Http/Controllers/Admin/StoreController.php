@@ -13,6 +13,7 @@ use DateTimeZone;
 use App\Mail\WelcomeMailMerchant;
 use Illuminate\Support\Facades\Mail;
 use App\Models\PaymentGateway;
+use Illuminate\Support\Str;
 
 class StoreController extends Controller
 {
@@ -29,6 +30,7 @@ class StoreController extends Controller
                     ->join('role_staff', 'staff.id', '=', 'role_staff.staff_id')  // Join staff with role_staff
                     ->join('roles', 'role_staff.role_id', '=', 'roles.id')       // Join role_staff with roles to get role name
                     ->select('staff.*', 'roles.name as role_name')
+                    ->where('roles.name', 'Merchant')
                     ->groupBy('staff.id')
                     ->orderBy('created_at', 'desc')->get();
 
@@ -86,9 +88,11 @@ class StoreController extends Controller
     $game_provider = implode(',',$request->input('game_provider'));
     $deposit_fees = $request->input('deposit_fees');
     $withdraw_fees = $request->input('withdraw_fees');
+    $randomString = Str::random(6);
 
     // Insert user's payment account into the database
     $id = DB::table('staff')->insertGetId([
+        'merchant_id' => $randomString,
         'name' => $name,
         'email' => $email,
         'password' => $password,
@@ -121,49 +125,65 @@ class StoreController extends Controller
     public function edit($id)
     {
         // Fetch the user member
-        $user = DB::table('user_account')->where('id', $id)->first();
+        $user = DB::table('staff')->where('id', $id)->first();
+        $user_details = DB::table('store_details')->where('store_id', $id)->first();
+        $gateways = $user_details ? explode(',', $user_details->gateways) : [];
+        $game_providers = $user_details ? explode(',', $user_details->game_providers) : [];
+        $games = DB::table('games')->get();
+        $payment_gateways = PaymentGateway::all();
 
-        return view('admin.useraccount.edit', compact('user'));
+        return view('admin.store.edit', compact('user','user_details','gateways','game_providers','games','payment_gateways'));
     }
 
 
     // Update the specified user member in storage
     public function update(Request $request, $id)
     {
-        // Fetch the existing user data
-        $existingUser = DB::table('checkbook_users')->where('user_id', $request->input('username'))->first();
-        $api_key = $existingUser->api_key;
-        $api_secret = $existingUser->api_secret_key;
-        $address = $request->input('line_1');
-        $cardNumber = $request->input('card_number');
-        $cvv = $request->input('cvv');
-        $expirationDate = $request->input('expiration_date');
-
-        if(DB::table('user_account')->where('user_id', $request->input('username'))->where('payment_method','CARD')->exists()){
-
-            $checkbookUser = DB::table('user_account')->where('user_id', $request->input('username'))->where('payment_method','CARD')->first();
-            $card_id = $checkbookUser->api_id;
-            $this->checkbookService->deletePrevCardAccount($card_id, $api_key, $api_secret);
-
-        }
-
-
-        $cardAcc = $this->checkbookService->createCardAccount($address, $cardNumber, $cvv, $expirationDate, $api_key, $api_secret);
-        // Update the user member's information in the 'user' table
-        DB::table('user_account')->where('id', $id)->update([
-            'user_id' => $request->input('username'),
-            'email' => $request->input('email'),
-            'line_1' => $request->input('line_1'),
-            'city' => $request->input('city'),
-            'state' => $request->input('state'),
-            'country' => $request->input('country'),
-            'zip_code' => $request->input('zip'),
-            'card_number' => $request->input('card_number'),
-            'cvv' => $request->input('cvv'),
-            'expiration_date' => $request->input('expiration_date'),
+        // Validate the request data if needed
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'gateways' => 'nullable|array', // Ensure gateways is an array
+            'game_provider' => 'nullable|array', // Ensure game_provider is an array
+            'deposit_fees' => 'nullable|numeric',
+            'withdraw_fees' => 'nullable|numeric',
         ]);
-
-        return redirect()->route('user.checkbook_usersbyid')->with('success', 'User updated successfully');
+    
+        // Prepare the data for update
+        $name = $request->input('name');
+        $email = $request->input('email');
+        $gateways = implode(',', $request->input('gateways', [])); // Default to empty array if gateways is null
+        $game_provider = implode(',', $request->input('game_provider', [])); // Default to empty array if game_provider is null
+        $deposit_fees = $request->input('deposit_fees');
+        $withdraw_fees = $request->input('withdraw_fees');
+    
+        // Update the staff table
+        $staffData = [
+            'name' => $name,
+            'email' => $email,
+        ];
+    
+        // Only update the password if a new one is provided
+        if ($request->filled('password')) {
+            $staffData['password'] = bcrypt($request->input('password'));
+        }
+    
+        DB::table('staff')
+            ->where('id', $id)
+            ->update($staffData);
+    
+        // Update the store_details table
+        DB::table('store_details')
+            ->where('store_id', $id)
+            ->update([
+                'gateways' => $gateways,
+                'transacxtion_fees' => $deposit_fees,
+                'withdraw_fees' => $withdraw_fees,
+                'game_providers' => $game_provider,
+            ]);
+    
+        // Redirect with success message
+        return redirect()->route('admin.merchant.list')->with('success', 'Account updated successfully');
     }
 
 

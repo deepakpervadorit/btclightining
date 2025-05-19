@@ -3,7 +3,7 @@
 @section('title', 'Checkbook Settings - Admin Dashboard')
 
 @section('breadcrumb')
-    Try Speed Settings
+    Cashapp Crypto Settings
 @endsection
 
 @section('content')
@@ -23,7 +23,7 @@
                 <div class="card">
                     <div class="card-header row justify-content-between align-items-center m-0">
                         <div class="col-auto p-0">
-                            <h2 class="card-title fs-5">Update TrySpeed Keys</h2>
+                            <h2 class="card-title fs-5">Update Cashapp Crypto Keys</h2>
                         </div>
                         <form action="{{ route('admin.tryspeed.update') }}" method="post" class="col-auto p-0">
                             @csrf
@@ -54,4 +54,24 @@
         </div>
 
     </div>
+@endsection
+@section('scripts')
+<script>
+    @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+    @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                confirmButtonText: 'OK'
+            });
+    @endif
+</script>
 @endsection

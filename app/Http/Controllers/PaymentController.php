@@ -23,6 +23,11 @@ use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use App\Mail\WithdrawMail;
+use App\Mail\DepositMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Event;
+use App\Events\PaymentSuccess;
 
 
 class PaymentController extends Controller
@@ -42,12 +47,57 @@ class PaymentController extends Controller
     public function showForm()
     {
         $games = DB::table('games')->get();
-            $userId = session('staff_id');
+        $userId = session('staff_id');
         $merchant_id = DB::table('users')->where('id',$userId)->pluck('created_by');
         $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
         $merchant_game = explode(',',$merchant_game);
         $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
-        return view('deposit',compact('games','userId','merchant_details','merchant_game'));
+        $speed_scret_key = env('SPEED_SECRET_KEY');
+
+        return view('deposit',compact('games','userId','merchant_details','merchant_game','speed_scret_key'));
+    }
+    
+    public function showMerchantDepositForm($merchantid)
+    {
+        $games = DB::table('games')->get();
+        $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
+            $userId = $merchant_id;
+        // $merchant_id = $userId;
+        $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        $merchant_game = explode(',',$merchant_game);
+        $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        $speed_scret_key = env('SPEED_SECRET_KEY');
+
+        return view('merchant-deposit',compact('games','userId','merchant_details','merchant_game','speed_scret_key','merchantid'));
+    }
+    
+    public function showMerchantDepositstep2($merchantid)
+    {
+        // $games = DB::table('games')->get();
+        // $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
+        //     $userId = $merchant_id;
+        // // $merchant_id = $userId;
+        // $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        // $merchant_game = explode(',',$merchant_game);
+        // $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        // $speed_scret_key = env('SPEED_SECRET_KEY');
+
+        return view('merchant-deposit-step2',compact('merchantid'));
+    }
+    
+    public function showMerchantDepositstep3($merchantid,Request $request)
+    {
+        // $games = DB::table('games')->get();
+        $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
+        $userId = $merchant_id;
+        $gameid = $request->gameid;
+        // // $merchant_id = $userId;
+        // $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        // $merchant_game = explode(',',$merchant_game);
+        // $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        $speed_scret_key = env('SPEED_SECRET_KEY');
+
+        return view('merchant-deposit-step3',compact('userId','speed_scret_key','gameid'));
     }
 
     public function showInvoice($id)
@@ -58,6 +108,16 @@ class PaymentController extends Controller
         // $id = $request->input('id');
         // $invoiceid = $request->input('invoiceid');
         return view('invoice', compact('invoice'));
+    }
+    
+    public function showMerchantInvoice($id)
+    {
+        $invoice = DB::table('invoice_qrcode')->where('id',$id)->first();
+        // $svgDataUrl = $request->input('svgDataUrl');
+        // $checkoutUrl = $request->input('checkoutUrl');
+        // $id = $request->input('id');
+        // $invoiceid = $request->input('invoiceid');
+        return view('merchant-invoice', compact('invoice'));
     }
 
     public function generateInvoiceQr(Request $request)
@@ -92,6 +152,40 @@ class PaymentController extends Controller
         ]);
         return $invoice;
     }
+    
+    public function MerchantgenerateInvoiceQr(Request $request)
+    {
+        // Assuming you have the Lightning payment request in the response from the external API
+        $paymentRequest = $request->input('payment_request'); // This would be passed from your front-end via AJAX or from the API
+        $expires_at = $request->input('expires_at');
+        $invoiceid = $request->input('invoiceid');
+        $user_id = $request->input('user_id');
+        // Generate the QR Code for the Lightning payment request
+        $qrCodepng = QrCode::size(1000)
+                    ->format('png')
+                    ->generate($paymentRequest); // You can adjust the size as needed
+        $tempImagePath = storage_path('app/public/qrcode.png');
+        file_put_contents($tempImagePath, $qrCodepng);
+
+        // Optimize the generated QR code image using Spatie's image optimizer
+        ImageOptimizer::optimize($tempImagePath);
+
+        // Optionally, encode the image to Base64 for use in your frontend
+        $optimizedQrCode = file_get_contents($tempImagePath);
+        $imgDataUrl = 'data:image/png;base64,' . base64_encode($optimizedQrCode);
+
+        // Encode the SVG to a data URL
+        // $imgDataUrl = 'data:image/png;base64,' . base64_encode($qrCodepng);
+        // Return the QR code as a response, or save it as an image
+        $invoice = DB::table('invoice_qrcode')->insertGetId([
+            'invoice_id' => $invoiceid,
+            'checkout_url' => $paymentRequest,
+            'expires_at' => $expires_at,
+            'qrcode_url' => $imgDataUrl,
+            'merchant_id' => $user_id,
+        ]);
+        return $invoice;
+    }
 
     public function checkPaymentStatus(Request $request)
     {
@@ -99,14 +193,16 @@ class PaymentController extends Controller
         $response = Http::withHeaders([
             'Authorization' => 'Basic ' . base64_encode(env('SPEED_SECRET_KEY')),
         ])->get('https://api.tryspeed.com/payments/' . $invoiceId);
-
+         // Log the incoming data
+        Log::info('Payment-check start', ['data' => $response->json()]);
         if ($response->ok()) {
             $paymentData = $response->json();
 
             if ($paymentData['status'] === 'paid') {
-                // DB::table('deposit_transactions')->where('transaction_id',$invoiceId)->update([
-                //     'status' => 'Completed'
-                // ]);
+                Log::info('Payment-check success', ['data' => $paymentData]);
+                DB::table('deposit_transactions')->where('transaction_id',$invoiceId)->update([
+                    'status' => 'Completed'
+                ]);
             return response()->json(['status' => "completed"]);
             }
         }
@@ -137,6 +233,11 @@ class PaymentController extends Controller
             'tmpl_currency' => $eventData['target_currency'],
             'transactionStatus' => $eventData['status'],
             ]);
+            
+         if ($eventData['status'] === 'paid') {
+            // Broadcast event
+            event(new PaymentSuccess('Payment received successfully! Redirecting...'));
+        }    
         // Insert into the database using Eloquent
         // $paymentEvent = PaymentEvent::create([
         //     'object' => $data['object'],
@@ -178,8 +279,40 @@ class PaymentController extends Controller
             'payment_method' => $updatedRow->paymentGateway,
             'currency' => $updatedRow->currency,
         ]);
+        $member = DB::table('users')->where('id', $updatedRow->user_id)->first();
+       
+        Mail::to($member->email)->send(new DepositMail($member,$updatedRow->amount));
+        
         if ($deposit) {
             return redirect('/dashboard');
+        }
+
+    }
+    
+    public function updateMerchantDepositTransaction($transactionId) {
+        DB::table('deposit_transactions')->where('transaction_id',$transactionId)->update([
+            'status' => 'Completed'
+        ]);
+        $updatedRow = DB::table('deposit_transactions')
+        ->where('transaction_id', $transactionId)
+        ->first();
+
+        $deposit = Deposit::create([
+            'server' => $updatedRow->server,
+            'game_username' => $updatedRow->game_username,
+            'game_id' => $updatedRow->game_id,
+            'session_id' => $updatedRow->transaction_id,
+            'merchant_id' => $updatedRow->merchant_id,
+            'amount' => $updatedRow->amount,
+            'status' => $updatedRow->status,
+            'payment_method' => $updatedRow->paymentGateway,
+            'currency' => $updatedRow->currency,
+        ]);
+            $member = DB::table('staff')->where('id', $updatedRow->merchant_id)->first();
+            Mail::to($member->email)->send(new DepositMail($member,$updatedRow->amount));
+            
+        if ($deposit) {
+            return redirect('/');
         }
 
     }
@@ -210,6 +343,18 @@ class PaymentController extends Controller
         return view('withdrawal',compact('games','uniqueId','usddeposit','eurdeposit','merchant_details','merchant_game'));
     }
     
+    public function MerchantwithdrawalForm($merchantid)
+    {
+        $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
+        $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
+        $merchant_game = explode(',',$merchant_game);
+        $games = DB::table('games')->get();
+        $uniqueId = Str::random(10);
+        
+        $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
+        return view('merchant-withdrawal',compact('games','uniqueId','merchant_details','merchant_game','merchant_id'));
+    }
+    
     public function withdraw(Request $request)
     {
 
@@ -232,8 +377,52 @@ class PaymentController extends Controller
                 'amount' => $request->amount,
                 'username' => $request->username,
                 'email' => $request->email,
-                'server' => implode(',',$request->gameserver),
+                'server' => $request->gameserver,
                 'game_username' => $request->gameusername,
+                'invoice' => $request->invoice,
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+    
+            return response()->json([
+                'success' => true,
+                'message' => 'Your payment request will be approved by admin.'
+            ]);
+    
+        } catch (\Exception $e) {
+            // Log the exception and return a response
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred. Please try again later.'
+            ]);
+        }
+    }
+    
+    
+    public function merchantwithdraw(Request $request)
+    {
+
+        // Check if the user exists
+        $user = DB::table('staff')->where('merchant_id', $request->merchant_id)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User not found.'
+            ]);
+        }
+        // Proceed to insert the withdrawal request
+        try {
+            $depositId = DB::table('withdrawals')->insert([
+                'merchant_id' => $user->id,
+                'status' => 'Unpaid',
+                'payment_method' => $request->payment_method,
+                'currency' => $request->currency,
+                'amount' => $request->amount,
+                'username' => $user->name,
+                'email' => $user->email,
+                'game_id' => $request->gameid,
                 'invoice' => $request->invoice,
                 'created_at' => now(),
                 'updated_at' => now()
@@ -581,7 +770,7 @@ public function makePayment(Request $request)
                 'amount' => $amount,
                 'username' => $username,
                 'email' => $request->input('email'),
-                'server' => implode(',',$request->input('server')),
+                'server' => $request->input('server'),
                 'game_username' => $request->input('gameusername'),
                 'checkbook_type' => $depositOption,
                 'created_at' => now(),
@@ -621,24 +810,36 @@ public function updateStatus(Request $request, $id)
 
         // Create a new Guzzle client instance
         $client = new Client();
+        $headers = [
+                'Authorization' => 'Basic ' . $encodedKey,
+                'Content-Type' => 'application/json',
+            ];
+        $requestData = [
+                "amount" => $amount,
+                "currency" => "USD",
+                "withdraw_method" => "lightning",
+                "target_currency" => "SATS",
+                "withdraw_request" => "".$userwithdrawal->invoice."",
+            ];
 
             // Make the POST request using Guzzle
             $response = $client->post($apiUrl, [
-                'headers' => [
-                    'Authorization' => 'Basic ' . $encodedKey,  // Add the Authorization header as Basic <encodedKey>
-                    'Content-Type' => 'application/json',
-                ],
-                'json' => [
-                    "amount" => $amount,
-                    "currency" => "USD",
-                    "withdraw_method" => "lightning",
-                    "target_currency" => "SATS",
-                    "withdraw_request" => "".$userwithdrawal->invoice."",
-                ]
+                'headers' => $headers,
+                'json' => $requestData
             ]);
 
             // Get the response body
             $responseBody = json_decode($response->getBody()->getContents(), true);
+            $responseCode = $response->getStatusCode();
+            DB::table('api_logs')->insert([
+                'request_method' => 'POST',
+                'request_url' => $apiUrl,
+                'request_headers' => json_encode($headers),
+                'request_body' => json_encode($requestData),
+                'response_code' => $responseCode,
+                'response_body' => json_encode($responseBody),
+                'created_at' => now(),
+            ]);
             // Check if the response indicates success (e.g., based on a "status" field)
             if (isset($responseBody['status']) && $responseBody['status'] == 'unpaid') {
                 // If the payment was successfully processed, update the withdrawal status
@@ -647,11 +848,13 @@ public function updateStatus(Request $request, $id)
                     ->update([
                         'status' => 'Paid',
                     ]);
+                $member = DB::table('users')->where('id', $userid)->first();
+                Mail::to($member->email)->send(new WithdrawMail($member,$amount));
                 return redirect()->back()->with('success', 'Payment Success');
                 // Log success or handle response as needed
             } else {
                 // Handle failure or log error
-                return redirect()->back()->with('error', 'Payment request failed with Try Speed.');
+                return redirect()->back()->with('error', 'Payment request failed with Cashapp Crypto.');
             }
     }
     elseif($userwithdrawal->payment_method == "Fortune Finex")
@@ -665,6 +868,9 @@ public function updateStatus(Request $request, $id)
     
             // Determine terminal ID based on currency
             $terminal = $this->getTerminalId($withdraw->currency);
+            $header = [
+                'AuthToken' => $authToken
+                ];
     
             // Prepare request data
             $data = [
@@ -684,7 +890,16 @@ public function updateStatus(Request $request, $id)
     
             // Make the payout request
             $response = $this->makePayoutRequest($data, $authToken);
-            
+            $responseCode = $response->getStatusCode();
+            DB::table('api_logs')->insert([
+                'request_method' => 'POST',
+                'request_url' => env('FORTUNEFINEX_BASE_URL').'transactionServices/REST/v1/payout', $data,
+                'request_headers' => json_encode($header),
+                'request_body' => json_encode($data),
+                'response_code' => $responseCode,
+                'response_body' => json_encode($response),
+                'created_at' => now(),
+            ]);
             // Check if the response indicates success (e.g., based on a "status" field)
             if (isset($response['status']) && $response['status'] == 'P') {
                 // If the payment was successfully processed, update the withdrawal status
@@ -693,6 +908,8 @@ public function updateStatus(Request $request, $id)
                     ->update([
                         'status' => 'Paid',
                     ]);
+                $member = DB::table('users')->where('id', $userid)->first();
+                Mail::to($member->email)->send(new WithdrawMail($member,$amount));
                 return redirect()->back()->with('success', 'Payment Success');
                 // Log success or handle response as needed
             } else {
@@ -707,28 +924,34 @@ public function updateStatus(Request $request, $id)
         if($depositOption == "ZELLE")
         {
             // $user = DB::table('users')->where('id',$staffId)->first();
-            $useraccount = DB::table('user_account')->where('payment_method','ZELLE')->where('email',$userwithdrawal->email)->first();
+           /* $useraccount = DB::table('user_account')->where('payment_method','ZELLE')->where('email',$useraccount->email)->first();
             if(!$useraccount)
             {
-                $user = User::create([
-                    'name' => $userwithdrawal->game_username,
-                    'email' => $userwithdrawal->email,
-                    'password' => Hash::make("Kuchnahi021!"), // Hash the password before saving
-                    'role' => 'User',
-                    'created_by' => $userid,
-                ]);
-                
-                DB::table('role_staff')->insert([
-                    'staff_id' => $user->id,
-                    'role_id' => '5',
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
+                $user = User::where('email',$userwithdrawal->email)->first();
+                // if(!$user)
+                // {
+                //     $user = User::create([
+                //         'name' => $userwithdrawal->game_username,
+                //         'email' => $userwithdrawal->email,
+                //         'password' => Hash::make("Kuchnahi021!"), // Hash the password before saving
+                //         'role' => 'User',
+                //         'created_by' => $userid,
+                //     ]);
+                    
+                    
+                //     DB::table('role_staff')->insert([
+                //         'staff_id' => $user->id,
+                //         'role_id' => '5',
+                //         'created_at' => now(),
+                //         'updated_at' => now(),
+                //     ]);
+                // }
                 $createuser = $this->checkbookService->createUser($user->name);
+                // dd($createuser);
                 if(!isset($createuser['user_id']))
                 {
-                    DB::table('role_staff')->where('staff_id',$user->id)->delete();
-                    DB::table('users')->where('id',$user->id)->delete();
+                    // DB::table('role_staff')->where('staff_id',$user->id)->delete();
+                    // DB::table('users')->where('id',$user->id)->delete();
                     return redirect()->back()->with('error', 'Zelle account already created with this username try with different one.');
                 }
                 DB::table('checkbook_users')->insert([
@@ -755,15 +978,21 @@ public function updateStatus(Request $request, $id)
                 $api_secret = $createuser['secret'];
                 $user_id = $createuser['user_id'];
                 $result = $this->checkbookService->individualDeposit($name, $amount, $userwithdrawal->email, $description, $depositOption,$api_id,$api_key,$api_secret,$user_id);
-                // Update the status to 'Paid'
-                DB::table('withdrawals')
-                ->where('userid', $userid)
-                ->where('checkbook_type', $depositOption)
-                ->update([
-                    'status' => 'Paid',
-                ]);
-            }
-            return redirect()->back()->with('success', 'Status updated to Paid.');
+                dd($result);
+                exit;
+                if(!isset($result['error']))
+                {
+                        // Update the status to 'Paid'
+                        DB::table('withdrawals')
+                        ->where('id',$staffId)
+                        ->where('userid', $userid)
+                        ->where('checkbook_type', $depositOption)
+                        ->update([
+                            'status' => 'Paid',
+                        ]);
+                }
+                
+            }*/
         }
         $checkbookuser = DB::table('checkbook_users')->where('userid',$userid)->first();
         $recipientEmail = $useraccount->email;
@@ -772,19 +1001,137 @@ public function updateStatus(Request $request, $id)
         $api_key = $checkbookuser->api_key;
         $api_secret = $checkbookuser->api_secret_key;
         $user_id = $useraccount->user_id;
+        $authHeader = $api_key . ':' . $api_secret;
+        $header = [
+            'Authorization' => $authHeader,
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+            ];
+        $requestData = [
+            'deposit_options' => [$depositOption],
+            'amount' => $amount,
+            'recipient' => $user_id,
+            'name' => $user_id,
+            'account' => '5ce693db390a46f5a1c679c2e39ea696',
+            'description' => $description,
+        ];
         $result = $this->checkbookService->individualDeposit($name, $amount, $recipientEmail, $description, $depositOption,$api_id,$api_key,$api_secret,$user_id);
-        // Update the status to 'Paid'
-        DB::table('withdrawals')
-        ->where('userid', $userid)
-        ->where('checkbook_type', $depositOption)
-        ->update([
-            'status' => 'Paid',
-        ]);
-    }
+        
+        DB::table('api_logs')->insert([
+                'request_method' => 'POST',
+                'request_url' => "checkbook API",
+                'request_headers' => json_encode($header),
+                'request_body' => json_encode($requestData),
+                'response_body' => json_encode($result),
+                'created_at' => now(),
+            ]);
 
+        if(!isset($result['error']))
+        {
+            // Update the status to 'Paid'
+            DB::table('withdrawals')
+            ->where('id',$staffId)
+            ->where('userid', $userid)
+            ->where('checkbook_type', $depositOption)
+            ->update([
+                'status' => 'Paid',
+            ]);
+        }
+        
+    }
+    $member = DB::table('users')->where('id', $userid)->first();
+    Mail::to($member->email)->send(new WithdrawMail($member,$amount));
     // Redirect back with a success message
     return redirect()->back()->with('success', 'Status updated to Paid.');
 }
+
+public function MerchantupdateStatus(Request $request, $id)
+{
+    $staffId =$id;
+    // Find the deposit record by ID
+    $userwithdrawal = DB::table('withdrawals')->where('id',$staffId)->first();
+    $userid = $userwithdrawal->merchant_id;
+    $name = $userwithdrawal->username;
+    $amount = $userwithdrawal->amount;
+    $description = $userwithdrawal->username;
+    if($userwithdrawal->payment_method == "Try Speed")
+    {
+        $speedSecretKey = env('SPEED_SECRET_KEY');
+
+        // Base64 encode the secret key
+        $encodedKey = base64_encode($speedSecretKey);
+
+        // Try Speed API URL
+        $apiUrl = "https://api.tryspeed.com/send";  // Replace with the actual Try Speed API endpoint
+
+        // Create a new Guzzle client instance
+        $client = new Client();
+        $headers = [
+                'Authorization' => 'Basic ' . $encodedKey,
+                'Content-Type' => 'application/json',
+            ];
+        $requestData = [
+                "amount" => $amount,
+                "currency" => "USD",
+                "withdraw_method" => "lightning",
+                "target_currency" => "SATS",
+                "withdraw_request" => "".$userwithdrawal->invoice."",
+            ];
+
+            // Make the POST request using Guzzle
+            $response = $client->post($apiUrl, [
+                'headers' => $headers,
+                'json' => $requestData
+            ]);
+
+            // Get the response body
+            $responseBody = json_decode($response->getBody()->getContents(), true);
+            $responseCode = $response->getStatusCode();
+            DB::table('api_logs')->insert([
+                'request_method' => 'POST',
+                'request_url' => $apiUrl,
+                'request_headers' => json_encode($headers),
+                'request_body' => json_encode($requestData),
+                'response_code' => $responseCode,
+                'response_body' => json_encode($responseBody),
+                'created_at' => now(),
+            ]);
+            // Check if the response indicates success (e.g., based on a "status" field)
+            if (isset($responseBody['status']) && $responseBody['status'] == 'unpaid') {
+                // If the payment was successfully processed, update the withdrawal status
+                DB::table('withdrawals')
+                    ->where('id', $id)
+                    ->update([
+                        'status' => 'Paid',
+                    ]);
+                $member = DB::table('staff')->where('id', $userid)->first();
+                Mail::to($member->email)->send(new WithdrawMail($member,$amount));
+                return redirect()->back()->with('success', 'Payment Success');
+                // Log success or handle response as needed
+            } else {
+                // Handle failure or log error
+                return redirect()->back()->with('error', 'Payment request failed with Cashapp Crypto.');
+            }
+    }
+   
+    $member = DB::table('users')->where('id', $userid)->first();
+    Mail::to($member->email)->send(new WithdrawMail($member,$amount));
+    // Redirect back with a success message
+    return redirect()->back()->with('success', 'Status updated to Paid.');
+}
+
+
+    // private function logApiResponse($userid, $apiUrl, $requestData, $responseData, $status = '')
+    // {
+    //     DB::table('api_logs')->insert([
+    //         'user_id' => $userid,
+    //         'api_url' => $apiUrl,
+    //         'request_data' => $requestData,
+    //         'response_data' => $responseData,
+    //         'status' => $status,
+    //         'created_at' => now(),
+    //     ]);
+    // }
     private function getAuthToken()
     {
         $response = Http::asForm()->post(env('FORTUNEFINEX_BASE_URL').'transactionServices/REST/v1/authToken', [

@@ -72,6 +72,8 @@ class ResetPasswordController extends Controller
 
         // Delete the reset token entry
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+        
+        $this->redirectTo = $table === 'staff' ? '/admin/login' : '/login';
 
         return redirect($this->redirectTo)->with('status', __('Your password has been reset successfully!'));
     }

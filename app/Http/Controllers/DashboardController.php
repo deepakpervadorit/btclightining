@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Session;
 
 class DashboardController extends Controller
 {
@@ -83,16 +84,20 @@ class DashboardController extends Controller
         $eurdeposit = DB::table('deposits')->where('user_id',$userId)->where('currency','EUR')->where('status','Y')->sum('amount');
         $usdwithdrawal = DB::table('withdrawals')->where('userid',$userId)->where('currency','USD')->where('status','Paid')->sum('amount');
         $eurwithdrawal = DB::table('withdrawals')->where('userid',$userId)->where('currency','EUR')->where('status','Paid')->sum('amount');
-        if ($usddeposit > $usdwithdrawal) {
-            $usddeposit = round($usddeposit - $usdwithdrawal, 2);
-        } else {
-            $usddeposit = round($usdwithdrawal - $usddeposit, 2);
-        }
-        if ($eurdeposit > $eurwithdrawal) {
-            $eurdeposit = round($eurdeposit - $eurwithdrawal, 2);
-        } else {
-            $eurdeposit = round($eurwithdrawal - $eurdeposit, 2);
-        }
+        
+        //Donot remove this condition
+        // if ($usddeposit > $usdwithdrawal) {
+            $usddeposit = round($usddeposit, 2);
+            
+        // } else {
+        //     $usddeposit = 0;
+        // }
+        // if ($eurdeposit > $eurwithdrawal) {
+            $eurdeposit = round($eurdeposit, 2);
+        // } else {
+        //     $eurdeposit = 0;
+        // }
+        
         $depositCount = DB::table('deposits')->where('user_id',$userId)->count();
         $withdrawalCount = DB::table('withdrawals')->where('userid',$userId)->count();
         $transactions = $depositCount + $withdrawalCount;
@@ -100,6 +105,80 @@ class DashboardController extends Controller
         // Now both $depositData and $withdrawData hold totals for each week
         // Return the view with all the data
         return view('admin.dashboard', compact('chartLabels', 'depositData', 'withdrawData', 'totalDeposit', 'avgDeposit', 'countDeposit', 'topDepositor', 'totalWithdraw', 'avgWithdraw', 'countWithdraw', 'topWithdraw','userId','permissions','roleName','usddeposit','eurdeposit','usdwithdrawal','eurwithdrawal','depositCount','withdrawalCount','transactions','moneyout'));
+    }
+    
+    public function profile()
+    {
+        $userId = session('staff_id');
+        $user = DB::table('staff')->where('id', $userId)->first();
+        return view('admin.profile',compact('user'));
+    }
+    
+    
+    public function updateprofile(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+        
+        
+        $name = $request->input('name');
+        $email = $request->input('email');
+        
+        $staffData = [
+            'name' => $name,
+            'email' => $email,
+        ];
+        if ($request->filled('password')) {
+            $staffData['password'] = bcrypt($request->input('password'));
+        }
+        
+        DB::table('staff')
+            ->where('id', $id)
+            ->update($staffData);
+        Session::put('staff_name', $name);
+        Session::put('staff_email', $email);
+        
+        return redirect()->back()->with('success',"Profile Updated Successfully");
+    }
+    
+    
+    public function userprofile()
+    {
+        $userId = session('staff_id');
+        $user = DB::table('users')->where('id', $userId)->first();
+        return view('admin.profile',compact('user'));
+    }
+    
+    
+    public function updateuserprofile(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+        ]);
+        
+        
+        $name = $request->input('name');
+        $email = $request->input('email');
+        
+        $staffData = [
+            'name' => $name,
+            'email' => $email,
+        ];
+        if ($request->filled('password')) {
+            $staffData['password'] = bcrypt($request->input('password'));
+        }
+        
+        DB::table('users')
+            ->where('id', $id)
+            ->update($staffData);
+            
+        Session::put('staff_name', $name);
+        Session::put('staff_email', $email);
+        
+        return redirect()->back()->with('success',"Profile Updated Successfully");
     }
 
 

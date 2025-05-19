@@ -16,29 +16,31 @@ class ServiceProviderController extends Controller
     {
         DB::table('games')->insert([
             'game' => $request->name,
+            'url' => $request->url,
             'status' => $request->status,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success',"Game Added Successfully");
     }
 
     public function updateGame(Request $request)
     {
         DB::table('games')->where('id', $request->id)->update([
             'game' => $request->name,
+            'url' => $request->url,
             'status' => $request->status,
             'updated_at' => now(),
         ]);
 
-        return redirect()->back();
+        return redirect()->back()->with('success',"Game Updated Successfully");
     }
 
     public function deleteGame($id)
     {
         DB::table('games')->where('id', $id)->delete();
 
-        return redirect()->back();
+        return redirect()->back()->with('success',"Game Deleted Successfully");
     }
 }

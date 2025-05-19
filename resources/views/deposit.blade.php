@@ -51,13 +51,11 @@ footer {
                             </div>
                             <div class="mb-3">
                                     <label for="server" class="form-label">Server Provider</label>
-                                    <select class="form-select js-example-basic-single" id="server" name="server[]" multiple required>
-                                        <option value="" disabled>Select a server provider</option>
+                                    <select class="form-select" id="server" name="server" required>
+                                        <option value="" selected disabled hidden>Select a server provider</option>
                                         
                                         @foreach($games as $key => $game)
                                         @if(in_array($game->id, $merchant_game))
-                                            <option value="{{ $game->id }}" selected>{{ $game->game }}</option>
-                                        @else
                                             <option value="{{ $game->id }}">{{ $game->game }}</option>
                                         @endif
                                         @endforeach
@@ -77,7 +75,7 @@ footer {
                             <select id="payment-method" class="form-select">
                                 <option value="">Choose...</option>
                                 @if ($merchant_details && strpos($merchant_details->gateways, 'tryspeed') !== false)
-                                <option value="tryspeed">Try Speed</option>
+                                <option value="tryspeed">Cashapp Crypto</option>
                                 @endif
                                 @if ($merchant_details && strpos($merchant_details->gateways, 'fortunefinex') !== false)
                                 <option value="visa">Visa</option>
@@ -340,9 +338,49 @@ document.getElementById('mamountInput').addEventListener('input', function() {
     });
 
 $("#tryspeedbtn").on('click',function(e){
-    var SPEED_SECRET_KEY = "{{ env('SPEED_SECRET_KEY') }}";
-    var encodedKey = btoa(SPEED_SECRET_KEY);
+    // Get the input values
+    var server = $("#server").val();
+    var gameusername = $("#gameusername").val();
     var famount = $('#tryspeedamountInput').val();
+
+    // Validate the inputs
+    var isValid = true;
+
+    if (!server) {
+        isValid = false;
+        $("#server").addClass('is-invalid'); // Add Bootstrap's invalid class
+        $("#server-error").text("Server is required.").show(); // Show error message
+    } else {
+        $("#server").removeClass('is-invalid');
+        $("#server-error").hide(); // Hide error message if valid
+    }
+
+    if (!gameusername) {
+        isValid = false;
+        $("#gameusername").addClass('is-invalid');
+        $("#gameusername-error").text("Game username is required.").show();
+    } else {
+        $("#gameusername").removeClass('is-invalid');
+        $("#gameusername-error").hide();
+    }
+
+    if (!famount) {
+        isValid = false;
+        $("#tryspeedamountInput").addClass('is-invalid');
+        $("#famount-error").text("Amount is required.").show();
+    } else {
+        $("#tryspeedamountInput").removeClass('is-invalid');
+        $("#famount-error").hide();
+    }
+
+    // If any input is invalid, stop further execution
+    if (!isValid) {
+        return;
+    }
+    
+    
+    var SPEED_SECRET_KEY = "{{ $speed_scret_key }}";
+    var encodedKey = btoa(SPEED_SECRET_KEY);
     var settings = {
         "url": "https://api.tryspeed.com/payments",
         "method": "POST",
@@ -365,8 +403,6 @@ $("#tryspeedbtn").on('click',function(e){
         var checkoutUrl = response.payment_method_options['lightning']['payment_request'];
         var expires_at = response.expires_at;
         var invoiceid = response.id;
-        var server = $("#server").val();
-        var gameusername = $("#gameusername").val();
         console.log(checkoutUrl);
         $.ajax({
                 url: "{{ url('/store') }}", // Laravel route
@@ -383,8 +419,7 @@ $("#tryspeedbtn").on('click',function(e){
                     _token: "{{ csrf_token() }}" // CSRF token for security
                 },
                 success: function (response) {
-                    console.log(response); // Success message
-                    alert(response);
+                    console.log(response);
                     $.ajax({
                         url: '/generate-invoice-qr',
                         method: 'POST',
