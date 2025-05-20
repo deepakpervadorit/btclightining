@@ -12,7 +12,7 @@ use App\Models\User;
 use App\Services\CheckbookService;
 use Illuminate\Support\Facades\Crypt;
 use App\Mail\WelcomeMail;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Mail; // Ensure this line is present
 use Carbon\Carbon;
 
 class LoginController extends Controller
@@ -99,35 +99,35 @@ public function login(Request $request)
 
         $role = DB::table('staff')->join('roles','roles.id','staff.role_id')->where('email', $credentials['email'])
         ->first();
-    
+
 
     // Determine if the credentials are valid for staff
     if ($staff && Hash::check($credentials['password'], $staff->password)) {
         if($role->name != "Superadmin")
         {
-        if ($staff->two_factor_enabled) {
-            // Generate a random 6-digit code
-            $code = mt_rand(100000, 999999);
+            if ($staff->two_factor_enabled) {
+                // Generate a random 6-digit code
+                $code = mt_rand(100000, 999999);
 
-            // Store it in the database with an expiration time
-            DB::table('staff')
-                ->where('id', $staff->id)
-                ->update([
-                    'two_factor_code' => $code,
-                    'two_factor_expires_at' => Carbon::now()->addMinutes(10),
-                ]);
+                // Store it in the database with an expiration time
+                DB::table('staff')
+                    ->where('id', $staff->id)
+                    ->update([
+                        'two_factor_code' => $code,
+                        'two_factor_expires_at' => Carbon::now()->addMinutes(10),
+                    ]);
 
-            // Send the 2FA code via email
-            Mail::raw("Your 2FA Code is: $code", function ($message) use ($staff) {
-                $message->to($staff->email)
-                        ->subject('Your Two-Factor Authentication Code');
-            });
+                // Send the 2FA code via email
+                Mail::raw("Your 2FA Code is: $code", function ($message) use ($staff) {
+                    $message->to($staff->email)
+                            ->subject('Your Two-Factor Authentication Code');
+                });
 
-            // Store user ID in session and log out
-            session(['2fa:user:id' => $staff->id]);
-            Auth::logout();
-            return redirect('/2fa/verify');
-        }
+                // Store user ID in session and log out
+                session(['2fa:user:id' => $staff->id]);
+                Auth::logout();
+                return redirect('/2fa/verify');
+            }
 
         // Store session variables
         Session::put('staff_id', $staff->id);

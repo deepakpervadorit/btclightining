@@ -9,21 +9,21 @@
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{{asset('assets/home_assets/zstyle.css')}}">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css" />
-  
+
   <section class="hero-section py-5">
   <div class="container">
     <div class="row align-items-center justify-content-between">
-      
+
       <!-- Left Text Content -->
       <div class="col-lg-6 col-md-12 text-white">
-        <span class="highlight-line d-inline-block mb-3">
-          <i class="fa fa-rocket"></i> Accept Bitcoin Instantly with BTCLightning
-        </span>
-        <h2><span>Lightning–Fast Bitcoin</span> Payments for Your Business. 
+    <span class="highlight-line d-inline-block mb-3 animated-highlight" style="background-color: #ffcc00; padding: 6px 12px; border-radius: 4px;">
+      <i class="fa fa-bolt"></i> Start Receiving Bitcoin in Seconds via FastBTC
+    </span>
+        <h2><span>Supercharge Your Business</span> with Instant Bitcoin Payments.
           <img src="{{asset('assets/home_assets/line.png')}}" alt="" class="line-text">
         </h2>
         <p class="text-light">
-          Process Bitcoin transactions in seconds with the Lightning Network, while also supporting standard Bitcoin payments when needed.
+           Enjoy instant Bitcoin transfers through the Lightning Network, while keeping the option for standard payments.
         </p>
         <a href="#faq" class="start-btn mt-3 d-inline-block">Start Accepting Lightning Payments</a>
       </div>
@@ -31,7 +31,7 @@
       <!-- Right Image Column -->
       <div class="col-lg-5 col-md-12 text-center mt-4 mt-lg-0">
         <div class="d-flex justify-content-center gap-3">
-          <img src="{{asset('assets/home_assets/BTC Lighting (2) (1).gif')}}" class="img-fluid" alt="Phone 1">
+          <img src="{{asset('assets/home_assets/btclightining-phone.gif')}}" class="img-fluid" alt="Phone 1">
         </div>
       </div>
 
@@ -41,20 +41,19 @@
 
 <!-- Brand Logo Slider -->
 <section class="brand-logo-slider py-5 bg-white">
-  <div class="container">
-    <div class="swiper mySwiper">
-      <div class="swiper-wrapper align-items-center">
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo1.png')}}" alt="PayPal" /></div>
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo2.png')}}" alt="Venmo" /></div>
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo3.svg')}}" alt="Kraken" /></div>
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo4.svg')}}" alt="CashApp" /></div>
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo1.png')}}" alt="Duplicate 1" /></div>
-        <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo2.png')}}" alt="Duplicate 2" /></div>
-      </div>
+    <div class="container">
+        <div class="swiper mySwiper">
+            <div class="swiper-wrapper align-items-center">
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo1.png')}}" alt="PayPal" /></div>
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo2.png')}}" alt="Venmo" /></div>
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo3.svg')}}" alt="Kraken" /></div>
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo4.svg')}}" alt="CashApp" /></div>
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo1.png')}}" alt="Duplicate 1" /></div>
+                <div class="swiper-slide"><img src="{{asset('assets/home_assets/logo2.png')}}" alt="Duplicate 2" /></div>
+            </div>
+        </div>
     </div>
-  </div>
 </section>
-
 <!-- Why BTCLightning -->
 <section class="why-paylightning py-5 bg-light">
   <div class="container">
@@ -165,7 +164,7 @@
 <section class="section-space bg-light">
   <div class="container">
     <div class="row g-4">
-      
+
       <!-- Lightning Payments -->
       <div class="col-md-6">
         <div class="card shadow rounded h-100">
@@ -291,9 +290,9 @@
                     </div>
                     <div class="card-body" bis_skin_checked="1">
                         <div id="msform" class="landing-page-form" bis_skin_checked="1">
-                         
+
                               <form class="row g-3 custom-input" method="POST" action="https://paylightning.io/add-contact">
-                                <input type="hidden" name="_token" value="h2JF2JFsjRFG4fJb4ArE35xMlvTVPwEViJhFadpq" autocomplete="off">                                
+                                <input type="hidden" name="_token" value="h2JF2JFsjRFG4fJb4ArE35xMlvTVPwEViJhFadpq" autocomplete="off">
                                 <div class="col-12" bis_skin_checked="1">
                                     <label class="form-label" for="firstnamewizard">Name<span class="txt-danger">*</span></label>
                                      <input type="text" class="form-control " id="name" name="name" placeholder="Enter your name" value="" required="">
@@ -305,20 +304,20 @@
                                 <div class="col-12" bis_skin_checked="1">
                                     <label class="col-sm-12 form-label" for="phonewizard">Email <span class="txt-danger">*</span></label>
                                     <input type="email" class="form-control " id="email" name="email" aria-describedby="emailHelp" placeholder="Enter your email" value="" required="">
-                           
+
                                                                     </div>
 
                                 <div class="col-12" bis_skin_checked="1">
                                     <label class="col-sm-12 form-label" for="msgwizard">Message<span class="txt-danger">*</span></label>
                                     <textarea class="form-control " id="message" name="message" rows="4" placeholder="Enter your message" required=""></textarea>
                                                                     </div>
-                                
+
                                 <div class="wizard-footer d-flex gap-2 justify-content-end mt-3" bis_skin_checked="1">
                                     <button class="btn btn-primary btn-lg">Submit</button>
                                 </div>
                             </form>
                         </div>
-                      
+
                     </div>
                 </div>
 			</div>
@@ -434,7 +433,7 @@
                     </div>
 		        </div>
 		    </div>
-		    
+
 		</div>
     </div>
 </section>
@@ -449,8 +448,8 @@
         <div class="row" bis_skin_checked="1">
             <div class="col-lg-8" bis_skin_checked="1">
                         <div class="title" bis_skin_checked="1">
-                            <h2 class="text-white">Testimonials &amp; Success Stories</h2>
-                            <p class="text-white">Real success stories showcasing seamless Bitcoin Lightning payments for businesses.</p>
+                            <h2 class="text-black">Testimonials &amp; Success Stories</h2>
+                            <p class="text-black">Real success stories showcasing seamless Bitcoin Lightning payments for businesses.</p>
                         </div>
                 <div class="swiper testimonials-swiper swiper-initialized swiper-horizontal swiper-pointer-events swiper-backface-hidden" bis_skin_checked="1">
                     <div class="swiper-wrapper" id="swiper-wrapper-1ec2a2198d22cd31" aria-live="off" style="transition-duration: 2000ms; transform: translate3d(-1522px, 0px, 0px);" bis_skin_checked="1"><div class="swiper-slide swiper-slide-duplicate swiper-slide-duplicate-active" data-swiper-slide-index="2" role="group" aria-label="3 / 4" style="width: 355.5px; margin-right: 25px;" bis_skin_checked="1">
@@ -558,25 +557,25 @@
 
 <!-- ✅ Initialize Swiper (place before </body>) -->
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
-    new Swiper(".testimonials-swiper", {
-      loop: true,
-      spaceBetween: 25,
-      slidesPerView: 1,
-      autoplay: {
-        delay: 3500,
-        disableOnInteraction: false
-      },
-      pagination: {
-        el: ".swiper-pagination",
-        clickable: true
-      },
-      breakpoints: {
-        768: { slidesPerView: 2 },
-        1200: { slidesPerView: 2 }
-      }
+    document.addEventListener("DOMContentLoaded", function () {
+        const swiper = new Swiper(".mySwiper", {
+            loop: true,
+            slidesPerView: 4,
+            spaceBetween: 30,
+            centeredSlides: true,
+            allowTouchMove: false,
+            autoplay: {
+                delay: 1, // almost no delay
+                disableOnInteraction: false,
+            },
+            speed: 2000, // Smooth transition duration (ms)
+            breakpoints: {
+                576: { slidesPerView: 3 },
+                768: { slidesPerView: 4 },
+                992: { slidesPerView: 5 }
+            }
+        });
     });
-  });
 </script>
     <!--<section id="hero">-->
     <!--    <div class="contianer">-->

@@ -20,13 +20,43 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 
     @yield('style')
+    <style>
+      @keyframes blinkHighlight {
+        0%, 100% {
+        background-color: #ffcc00;
+        box-shadow: 0 0 10px #ffcc00;
+        }
+        50% {
+        background-color: #ffe680;
+        box-shadow: 0 0 20px #ffe680;
+        }
+      }
 
+      .animated-highlight {
+        animation: blinkHighlight 1.5s infinite;
+      }
+      @keyframes moveLogo {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            50% {
+                transform: translateX(10px);
+            }
+        }
+
+        .animated-logo img {
+            animation: moveLogo 2s ease-in-out infinite;
+        }
+
+    </style>
 </head>
 <body>
     <div id="app">
         <header>
   <nav class="navbar">
-    <a class="navbar-brand" href="#"><img src="{{asset('assets/home_assets/Logo (1) (1).png')}}" height="70"></a>
+    <a class="navbar-brand animated-logo" href="#">
+        <img src="{{asset('assets/home_assets/Logo (1) (1).png')}}" height="100" style="width: 116px; max-height: 100px;">
+    </a>
     <ul class="navbar-nav">
       <li><a href="#home">Home</a></li>
       <li><a href="#about-us">About</a></li>

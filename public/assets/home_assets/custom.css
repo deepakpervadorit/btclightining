@@ -1,0 +1,230 @@
+.admin-logo {
+    max-width: 120px;
+}
+
+.logo-wrapper img {
+    width: 90px;
+}
+
+.span-copy-text {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #ccc;
+    padding: 8px 5px;
+    border-radius: 8px;
+    margin-right: 5px;
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #ddd;
+}
+
+.note {
+    font-size: 11px;
+    color: red;
+    margin: 5px 0;
+}
+.payment-main-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 0;
+}
+#btn-lightning > img {
+    max-width: 16px;
+}
+
+/*blog page css starts here*/
+
+/*.blog_banner {*/
+/*    padding: 180px 0px 100px;*/
+/*    background-image: url(https://demogswebtech.com/paylightning/website/assets/images/home/bg_blog.jpg);*/
+/*    background-position: center center;*/
+/*    background-size: cover;*/
+/*    margin-bottom: 60px;*/
+/*}*/
+
+.blog_banner {
+    margin-bottom: 40px;
+}
+
+.blog_content {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin-top: 70px;
+}
+
+.blog_content .blog_image {
+    position: relative;
+    width: 100%;
+}
+
+.blog_content .blog_image img.img-fluid {
+    width: 100%;
+}
+
+.blog_content .blog_body {
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    background: none !important;
+}
+
+.blog_content .blog_body .container, .blog_content .blog_body .row, .blog_content .blog_body .row h2 {
+   background: none !important;
+}
+
+.blog .blog__content .card, .blog .blog__content .card .card-body {
+    position: relative;
+    overflow: hidden;
+    transition: 0.5s ease;
+}
+
+.blog .blog__content .card a.blog_link {
+    position: absolute;
+    content: "";
+    height: 100%;
+    width: 100%;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+}
+
+
+.blog .blog__content .card .card-body:before {
+    position: absolute;
+    content: "";
+    background: #7A70BA;
+    bottom: 92%;
+    height: 100%;
+    left: 0;
+    right: 0;
+    top:92%;
+    transition: 0.5s ease;
+    z-index:0;
+}
+
+.blog .blog__content .card:hover .card-body:before {
+    height: 100%;
+    top: 0;
+    bottom: 100%;
+}
+
+.blog .blog__content .card:hover h5.card-title {
+    color: #fff;
+}
+
+.blog .blog__content .card h5.card-title {
+    z-index: 1;
+    position: relative;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.blog .blog__content .card:hover img {
+    transform: scale(1.3);
+    transition: 0.5s ease;
+}
+
+.blog .blog__content .card .card-header {
+    overflow: hidden;
+    border-radius: 0px !important;
+    padding: 24px;
+}
+
+.blog .blog__content .card .card-header img{
+    transition: 0.5s ease;
+    object-fit: cover;
+    width: 100%;
+    height: 200px;
+}
+
+
+/*blog page css ends here*/
+
+
+.custom-light {
+    border: 2px solid #e5e5e5 !important;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn > .fa-bitcoin {
+    background: #f88906;
+    width: 22px;
+    height: 22px;
+    border-radius: 20px;
+    padding: 4px;
+    color: #fff;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+.custom-dark {
+    border-width: 2px !important;
+    border-color: #577dc4 !important;
+    color: #333 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn > .fa-bolt {
+    background-color: #febf10;
+    width: 22px;
+    height: 22px;
+    border-radius: 20px;
+    padding: 4px;
+    color: #fff;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+#export-button_wrapper .dt-buttons {
+    float: right;
+    margin-bottom: 20px;
+}
+.default-dashboard div.dataTables_wrapper div.dataTables_filter {
+    top: 16px;
+    right: 24px;
+}
+
+
+/***** Media Start ******/
+@media only screen and (min-width: 992px){
+    
+    .blog_banner h2 {
+    font-size: calc(23px + 45 * (100vw - 768px) / 1152);
+}
+    
+}
+
+
+
+@media only screen and (max-width: 400px) {
+    .span-copy-text {
+        font-size: 13px;
+        max-width: 180px;
+        padding: 5px;
+    }
+}
+
+#transaction-container table {
+    width: 1100px !important;
+    overflow-x: scroll !important;
+}
