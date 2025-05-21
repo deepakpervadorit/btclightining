@@ -17,14 +17,20 @@ class CheckMerchantPaymentStatus extends Command
 
     public function handle()
     {
+        Log::info('CheckMerchantPaymentStatus command started.');
         // Fetch all pending transactions
         $pendingTransactions = DB::table('deposit_transactions')
             ->whereIn('status', ['Pending', 'Completed'])
             ->where('is_checked', false) // Only fetch unchecked transactions
             ->get();
 
+            Log::info('Number of pending transactions fetched: ' . $pendingTransactions->count());
+
         foreach ($pendingTransactions as $transaction) {
             try {
+
+                Log::info('Checking payment status for transaction ID: ' . $transaction->transaction_id);
+
                 // Call the API to check payment status
                 $response = Http::withHeaders([
                     'Authorization' => 'Basic ' . base64_encode(env('SPEED_SECRET_KEY')),
@@ -34,15 +40,18 @@ class CheckMerchantPaymentStatus extends Command
                 if ($response->ok()) {
                     $paymentData = $response->json();
 
+                    Log::info('API response for transaction ID ' . $transaction->transaction_id . ': ', $paymentData);
                     // Update the payment status in the database
                     if ($paymentData['status'] === 'paid') {
-                        echo "PAID";
+
                         DB::table('deposit_transactions')
                             ->where('transaction_id', $transaction->transaction_id)
                             ->update([
                                 'status' => 'Completed',
                                 'is_checked' => true, // Mark as checked
                             ]);
+
+                            Log::info('Transaction ID ' . $transaction->transaction_id . ' marked as Completed.');
 
                         // Check if the transaction already exists in the deposits table
                         $existingDeposit = Deposit::where('session_id', $transaction->transaction_id)->first();
@@ -102,5 +111,6 @@ class CheckMerchantPaymentStatus extends Command
         }
 
         $this->info('Merchant payment statuses updated successfully.');
+        Log::info('CheckMerchantPaymentStatus command completed.');
     }
 }
