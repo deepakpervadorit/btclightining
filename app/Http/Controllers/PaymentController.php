@@ -71,8 +71,10 @@ class PaymentController extends Controller
         return view('merchant-deposit',compact('games','userId','merchant_details','merchant_game','speed_scret_key','merchantid'));
     }
 
-    public function showMerchantDepositstep2($merchantid)
+    public function showMerchantDepositstep2($merchantid,Request $request)
     {
+        $redirect_url = $request->redirect_url;
+        
         // $games = DB::table('games')->get();
         // $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
         //     $userId = $merchant_id;
@@ -81,8 +83,14 @@ class PaymentController extends Controller
         // $merchant_game = explode(',',$merchant_game);
         // $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
         // $speed_scret_key = env('SPEED_SECRET_KEY');
-
-        return view('merchant-deposit-step2',compact('merchantid'));
+        if($redirect_url)
+        {
+            return view('merchant-deposit-step2',compact('merchantid','redirect_url'));
+        }
+        else
+        {
+            return view('merchant-deposit-step2',compact('merchantid'));
+        }
     }
 
     public function showMerchantDepositstep3($merchantid,Request $request)
@@ -91,13 +99,22 @@ class PaymentController extends Controller
         $merchant_id = DB::table('staff')->where('merchant_id', $merchantid)->value('id');
         $userId = $merchant_id;
         $gameid = $request->gameid;
+        
+        $redirect_url = $request->redirect_url;
+        
         // // $merchant_id = $userId;
         // $merchant_game = DB::table('store_details')->where('store_id',$merchant_id)->value('game_providers');
         // $merchant_game = explode(',',$merchant_game);
         // $merchant_details = DB::table('store_details')->where('store_id',$merchant_id)->first();
         $speed_scret_key = env('SPEED_SECRET_KEY');
-
-        return view('merchant-deposit-step3',compact('userId','speed_scret_key','gameid'));
+        if($redirect_url)
+        {
+            return view('merchant-deposit-step3',compact('userId','speed_scret_key','gameid','redirect_url'));
+        }
+        else
+        {
+            return view('merchant-deposit-step3',compact('userId','speed_scret_key','gameid'));
+        }
     }
 
     public function showInvoice($id)
@@ -1079,14 +1096,62 @@ public function MerchantupdateStatus(Request $request, $id)
             ];
 
             // Make the POST request using Guzzle
-            $response = $client->post($apiUrl, [
-                'headers' => $headers,
-                'json' => $requestData
-            ]);
-
-            // Get the response body
-            $responseBody = json_decode($response->getBody()->getContents(), true);
-            $responseCode = $response->getStatusCode();
+            try {
+                $response = $client->post($apiUrl, [
+                    'headers' => $headers,
+                    'json' => $requestData
+                ]);
+            
+                $responseBody = json_decode($response->getBody()->getContents(), true);
+                $responseCode = $response->getStatusCode();
+            } catch (\GuzzleHttp\Exception\ClientException $e) {
+                // This catches 400-level errors
+                $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                $responseCode = $e->getResponse()->getStatusCode();
+            
+                // Log to DB
+                DB::table('api_logs')->insert([
+                    'request_method' => 'POST',
+                    'request_url' => $apiUrl,
+                    'request_headers' => json_encode($headers),
+                    'request_body' => json_encode($requestData),
+                    'response_code' => $responseCode,
+                    'response_body' => json_encode($responseBody),
+                    'created_at' => now(),
+                ]);
+            
+                // Return with specific error
+                return redirect()->back()->with('error', $responseBody['errors'][0]['message'] ?? 'Try Speed request failed');
+            } catch (\GuzzleHttp\Exception\ServerException $e) {
+                // This catches 500-level errors
+                $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                $responseCode = $e->getResponse()->getStatusCode();
+            
+                DB::table('api_logs')->insert([
+                    'request_method' => 'POST',
+                    'request_url' => $apiUrl,
+                    'request_headers' => json_encode($headers),
+                    'request_body' => json_encode($requestData),
+                    'response_code' => $responseCode,
+                    'response_body' => json_encode($responseBody),
+                    'created_at' => now(),
+                ]);
+            
+                return redirect()->back()->with('error', 'Try Speed server error occurred.');
+            } catch (\Exception $e) {
+                // Catch all other exceptions
+                DB::table('api_logs')->insert([
+                    'request_method' => 'POST',
+                    'request_url' => $apiUrl,
+                    'request_headers' => json_encode($headers),
+                    'request_body' => json_encode($requestData),
+                    'response_code' => 0,
+                    'response_body' => $e->getMessage(),
+                    'created_at' => now(),
+                ]);
+            
+                return redirect()->back()->with('error', 'Unexpected error: ' . $e->getMessage());
+            }
             DB::table('api_logs')->insert([
                 'request_method' => 'POST',
                 'request_url' => $apiUrl,

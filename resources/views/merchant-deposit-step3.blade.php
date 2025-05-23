@@ -361,7 +361,11 @@
                                         text: "Your payment has been completed",
                                         icon: "success"
                                     }).then(() => {
+                                        @if(isset($redirect_url))
+                                        window.location.href = '{{$redirect_url}}';
+                                        @else
                                         window.location.href = '/merchant/update_transaction/'+invoiceid+'';
+                                        @endif
                                     });
                                 }
                             },

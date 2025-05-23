@@ -121,6 +121,9 @@
           @csrf
         <label for="game-id">Enter Game ID</label>
         <input type="text" class="form-control" id="game-id" placeholder="Your Game ID" name="gameid">
+        @if(isset($redirect_url))
+        <input type="text" class="form-control" value="{{$redirect_url}}" name="redirect_url" hidden>
+        @endif
         <button type="submit" class="btn btn-next">Next</button>
       </form>
     </div>

@@ -17,5 +17,6 @@ class VerifyCsrfToken extends Middleware
         '/webhook',
         '/notify-payment',
         '/merchant/generate-invoice-qr',
+        '/merchant-withdraw',
     ];
 }

@@ -87,7 +87,7 @@ use Illuminate\Support\Facades\DB;
                         <!--<th>Load</th>-->
                         <th>Status</th>
                         <th>Created At</th>
-                        <th>Action</th>
+                        <!--<th>Action</th>-->
                     </tr>
                 </thead>
                 <tbody>
@@ -145,14 +145,14 @@ use Illuminate\Support\Facades\DB;
 @endif
 </td>
                         <td>{{ $deposit->created_at }}</td>
-                        <td>
+                        <!--<td>-->
                             <!-- Delete Form -->
-                            <form action="{{ route('withdrawal.destroy', $deposit->id) }}" method="POST" style="display:inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn text-danger btn-sm" onclick="return confirm('Are you sure you want to delete this deposit?')">Delete</button>
-                            </form>
-                        </td>
+                        <!--    <form action="{{ route('withdrawal.destroy', $deposit->id) }}" method="POST" style="display:inline;">-->
+                        <!--        @csrf-->
+                        <!--        @method('DELETE')-->
+                        <!--        <button type="submit" class="btn text-danger btn-sm" onclick="return confirm('Are you sure you want to delete this deposit?')">Delete</button>-->
+                        <!--    </form>-->
+                        <!--</td>-->
                     </tr>
                     @endforeach
                 </tbody>

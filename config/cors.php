@@ -19,7 +19,7 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => ['https://paying.cumbo.tech/'],
+    'allowed_origins' => ['https://paying.cumbo.tech','https://redeem.cumbo.tech','https://sweeps.cumbo.tech'],
 
     'allowed_origins_patterns' => [],
 

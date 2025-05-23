@@ -331,7 +331,7 @@ a.navbar-brand.text-white.mb-4 {
         <!-- Profile Name with Dropdown Icon -->
         <div id="profileDropdownBtn" class="d-flex align-items-center" style="cursor: pointer;">
             <!--<img src="https://via.placeholder.com/40" alt="Profile" />-->
-            <span class="ms-2">{{$roleName == "" ? session('staff_name') : $roleName}}</span>
+            <span class="ms-2">{{$roleName == "" ? session('staff_name') : session('staff_name')}}</span>
             <i class="fas fa-chevron-down ms-2"></i> <!-- Dropdown Icon -->
         </div>
         <!-- Dropdown Menu -->
